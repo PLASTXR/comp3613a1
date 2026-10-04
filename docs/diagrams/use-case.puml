@@ -1,0 +1,56 @@
+@startuml
+!pragma layout smetana
+skinparam shadowing false
+skinparam actorBorderColor #1B365D
+skinparam actorFontColor #1E232D
+skinparam usecaseBackgroundColor #FFFFFF
+skinparam usecaseBorderColor #1B365D
+skinparam usecaseFontColor #1E232D
+skinparam rectangleBorderColor #1B365D
+skinparam rectangleBackgroundColor #F8FAFC
+skinparam arrowColor #1B365D
+skinparam ranksep 1.5
+skinparam nodesep 1.2
+skinparam linetype ortho
+
+actor "Student" as Student
+
+rectangle "Student Awards" {
+  top to bottom direction
+  usecase "Apply to volunteer project" as Apply_to_volunteer_project
+  usecase "Withdraw application" as Withdraw_application
+  usecase "Log volunteer hours" as Log_volunteer_hours
+  usecase "Attach evidence/proof" as Attach_evidence_proof
+  usecase "Verify student hours" as Verify_student_hours
+  usecase "Resign from project" as Resign_from_project
+  usecase "Record resignation reason" as Record_resignation_reason
+  usecase "Notify organization" as Notify_organization
+  usecase "Redeem reward" as Redeem_reward
+  usecase "Deduct points" as Deduct_points
+  usecase "Post volunteer opportunity" as Post_volunteer_opportunity
+  usecase "Submit listing details" as Submit_listing_details
+  usecase "Review volunteer listing" as Review_volunteer_listing
+}
+
+actor "Volunteer Organization" as Volunteer_Organization
+actor "Campus Volunteerism Centre Admin" as Campus_Volunteerism_Centre_Admin
+
+Student --> Apply_to_volunteer_project
+Apply_to_volunteer_project <-- Volunteer_Organization
+Student --> Withdraw_application
+Withdraw_application ..> Apply_to_volunteer_project : <<extend>>
+Student --> Log_volunteer_hours
+Log_volunteer_hours ..> Attach_evidence_proof : <<extend>>
+Verify_student_hours <-- Campus_Volunteerism_Centre_Admin
+Student --> Resign_from_project
+Resign_from_project <-- Volunteer_Organization
+Resign_from_project ..> Record_resignation_reason : <<include>>
+Resign_from_project ..> Notify_organization : <<include>>
+Student --> Redeem_reward
+Redeem_reward ..> Deduct_points : <<include>>
+Post_volunteer_opportunity <-- Volunteer_Organization
+Post_volunteer_opportunity ..> Submit_listing_details : <<include>>
+Submit_listing_details <-- Volunteer_Organization
+Review_volunteer_listing <-- Campus_Volunteerism_Centre_Admin
+
+@enduml

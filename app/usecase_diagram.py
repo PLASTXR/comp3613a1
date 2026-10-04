@@ -138,6 +138,9 @@ def to_plantuml(spec: DiagramSpec) -> str:
         "skinparam rectangleBorderColor #1B365D",
         "skinparam rectangleBackgroundColor #F8FAFC",
         "skinparam arrowColor #1B365D",
+        "skinparam ranksep 1.5",
+        "skinparam nodesep 1.2",
+        "skinparam linetype ortho",
         "",
     ]
     left = [actor for actor in spec.actors if actor.side != "right"]
@@ -149,6 +152,7 @@ def to_plantuml(spec: DiagramSpec) -> str:
     if left:
         lines.append("")
     lines.append(f"rectangle {_quote(spec.system)} {{")
+    lines.append("  top to bottom direction")
     for case in spec.use_cases:
         lines.append(
             f"  usecase {_quote(case.name)} as {aliases[f'uc:{case.name}']}"

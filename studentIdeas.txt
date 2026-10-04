@@ -1,0 +1,46 @@
+#### Actors
+- Student (primary)
+- Volunteer organization (primary, secondary)
+- Campus Volunteerism Centre Admin (secondary)
+
+Use case 1: Student applies to join a volunteer project
+	Name: Apply to volunteer project
+	Primary Actor: Student
+	Secondary Actor: Volunteer Organization
+	Associations: Student 
+		Extends: Withdraw application
+
+
+Use case 2: Student logs volunteer hours
+	Name: Log hours
+	Primary Actor: Student
+	Associations: Student
+		Extends: Attach evidence/proof
+
+Use case 3: Verify student hours
+	Name: Verify student hours
+	Primary Actor: Campus Volunteerism Centre Admin
+	Associations: Campus Volunteerism Centre Admin
+		Alternate flows for Deny/Accept student hours
+
+Use case 4: Student resigns from a volunteer project
+	Name: Resign from project
+	Primary Actor: Student
+	Secondary Actor: Volunteer Organization
+	Associations: Student, Volunteer organization
+		Included use case: Record resignation reason
+		Included use case: Notify organization
+
+Use case 5: Student redeems prize
+Name: Redeem reward
+Primary Actor: Student
+Associations: Student
+	Includes: Deduct points
+
+Use case 6: Volunteer organization post volunteer opportunity listing for review
+Name: Post volunteer listing
+Primary Actor: Volunteer Organization
+Secondary Actor: Campus Volunteerism Centre Admin
+Associations: Volunteer organization
+	Includes use case: Submit listing details
+	Alternate flows for Approve/Deny volunteer listing

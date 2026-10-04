@@ -5,14 +5,18 @@ Draft this file with the Guide. **Update it after every phase milestone** before
 Do not put your student ID in this file if you will commit it. The PDF cover adds your name and ID at export time.
 
 ## Assigned project
+Student Awards
 
 ## Three workflows
 
 ### 1.
+Log Volunteer Hours (Student)
 
 ### 2.
+Post Volunteer Opportunity (Volunteer Organization)
 
 ### 3.
+Redeem Hour Credits for Prizes (Student)
 
 ## Use case diagram
 

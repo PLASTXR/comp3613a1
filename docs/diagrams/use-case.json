@@ -1,0 +1,63 @@
+{
+  "system": "Student Awards",
+  "actors": [
+    { "name": "Student", "side": "left" },
+    { "name": "Volunteer Organization", "side": "right" },
+    { "name": "Campus Volunteerism Centre Admin", "side": "right" }
+  ],
+  "use_cases": [
+    {
+      "name": "Apply to volunteer project",
+      "actors": ["Student", "Volunteer Organization"]
+    },
+    {
+      "name": "Withdraw application",
+      "actors": ["Student"],
+      "extends": ["Apply to volunteer project"]
+    },
+    {
+      "name": "Log volunteer hours",
+      "actors": ["Student"],
+      "extends": ["Attach evidence/proof"]
+    },
+    {
+      "name": "Attach evidence/proof"
+    },
+    {
+      "name": "Verify student hours",
+      "actors": ["Campus Volunteerism Centre Admin"]
+    },
+    {
+      "name": "Resign from project",
+      "actors": ["Student", "Volunteer Organization"],
+      "includes": ["Record resignation reason", "Notify organization"]
+    },
+    {
+      "name": "Record resignation reason"
+    },
+    {
+      "name": "Notify organization"
+    },
+    {
+      "name": "Redeem reward",
+      "actors": ["Student"],
+      "includes": ["Deduct points"]
+    },
+    {
+      "name": "Deduct points"
+    },
+    {
+      "name": "Post volunteer opportunity",
+      "actors": ["Volunteer Organization"],
+      "includes": ["Submit listing details"]
+    },
+    {
+      "name": "Submit listing details",
+      "actors": ["Volunteer Organization"]
+    },
+    {
+      "name": "Review volunteer listing",
+      "actors": ["Campus Volunteerism Centre Admin"]
+    }
+  ]
+}
