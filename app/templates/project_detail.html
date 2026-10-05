@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}{{ project.project_name }} | StudentCare{% endblock %}
+
+{% block content %}
+{% include "site-nav.html" %}
+<main class="project-search-page py-5">
+  <div class="container">
+    <p class="small text-secondary mb-3">
+      <a href="{{ url_for('project_search_view') }}">Projects</a>
+      <span class="mx-2">›</span>
+      {{ project.project_name }}
+    </p>
+
+    {% if application_submitted %}
+    <div class="modal fade" id="applicationSubmitted" tabindex="-1"
+         aria-labelledby="applicationSubmittedLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2 class="modal-title fs-5" id="applicationSubmittedLabel">Application Submitted</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>Your application to “{{ project.project_name }}” has been sent to Campus Volunteerism Centre for review.</p>
+            <p class="mb-0">You’ll be notified once it’s reviewed. Once approved, you can log hours.</p>
+          </div>
+          <div class="modal-footer">
+            <a class="btn btn-outline-primary" href="{{ url_for('project_search_view') }}">View Projects</a>
+            <a class="btn btn-primary" href="{{ url_for('project_search_view') }}">Apply to Another</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      window.addEventListener("DOMContentLoaded", function () {
+        const confirmation = document.getElementById("applicationSubmitted");
+        if (confirmation) {
+          new bootstrap.Modal(confirmation).show();
+        }
+      });
+    </script>
+    {% endif %}
+
+    <article class="card project-card mx-auto" style="max-width: 820px;">
+      <img class="card-img-top project-cover-image project-detail-cover-image"
+           src="{{ project.project_cover_image or url_for('static', path='img/project-cover-placeholder.svg') }}"
+           alt="{{ project.project_name }} cover">
+      <div class="card-body p-4 p-md-5">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+          <div>
+            <p class="small text-secondary mb-1">{{ organization.organization_name }}</p>
+            <h1 class="h2 mb-2">{{ project.project_name }}</h1>
+          </div>
+          {% if project.current_volunteers < project.max_volunteers %}
+          <span class="badge rounded-pill text-bg-success">Open</span>
+          {% else %}
+          <span class="badge rounded-pill text-bg-secondary">Full</span>
+          {% endif %}
+        </div>
+
+        <div class="d-flex flex-wrap gap-3 text-secondary mb-4">
+          {% if project.primary_category %}<span class="category-chip">{{ project.primary_category }}</span>{% endif %}
+          {% if project.secondary_category %}<span class="category-chip">{{ project.secondary_category }}</span>{% endif %}
+          {% if project.location %}<span>{{ project.location }}</span>{% endif %}
+        </div>
+
+        <dl class="row gy-2 mb-4">
+          <dt class="col-sm-5">Estimated hours per session</dt>
+          <dd class="col-sm-7">{{ project.estimated_hours_per_session }}</dd>
+          <dt class="col-sm-5">Project dates</dt>
+          <dd class="col-sm-7">
+            {{ project.start_date.strftime("%b %d, %Y") }}
+            {% if project.end_date %}– {{ project.end_date.strftime("%b %d, %Y") }}{% endif %}
+          </dd>
+          <dt class="col-sm-5">Volunteer spaces</dt>
+          <dd class="col-sm-7">{{ project.current_volunteers }} / {{ project.max_volunteers }}</dd>
+          <dt class="col-sm-5">Commitment type</dt>
+          <dd class="col-sm-7">{{ project.commitment_type }}</dd>
+        </dl>
+
+        <div class="d-flex flex-wrap gap-2 mb-4">
+          {% if project.current_volunteers < project.max_volunteers %}
+          <a class="btn btn-primary"
+             href="{{ url_for('project_application_form', volunteer_project_id=project.volunteer_project_id) }}">
+            Apply Now
+          </a>
+          {% endif %}
+          <a class="btn btn-outline-secondary" href="{{ url_for('project_search_view') }}">Back to Projects</a>
+        </div>
+
+        <section class="mb-4">
+          <h2 class="h5">About this project</h2>
+          <p class="mb-0">{{ project.description }}</p>
+        </section>
+
+        <section class="mb-4">
+          <h2 class="h5">Requirements</h2>
+          <p class="mb-0">{{ project.application_requirements or "No additional requirements listed." }}</p>
+        </section>
+
+        <section class="mb-4">
+          <h2 class="h5">Contact</h2>
+          <div class="small text-secondary">
+            <p class="mb-1">{{ organization.organization_name }}</p>
+            {% if organization.contact_email %}<p class="mb-1">{{ organization.contact_email }}</p>{% endif %}
+            {% if organization.contact_phone %}<p class="mb-1">{{ organization.contact_phone }}</p>{% endif %}
+            {% if organization.address %}<p class="mb-0">{{ organization.address }}</p>{% endif %}
+          </div>
+        </section>
+      </div>
+    </article>
+  </div>
+</main>
+{% endblock %}

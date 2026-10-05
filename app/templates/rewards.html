@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+{% block title %}Redeem Your Rewards | StudentCare{% endblock %}
+
+{% block content %}
+{% include "site-nav.html" %}
+<main class="rewards-page py-5">
+  <div class="container">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+      <div>
+        <p class="landing-kicker text-uppercase mb-1">StudentCare rewards</p>
+        <h1 class="h2 mb-1">Redeem your rewards</h1>
+      </div>
+      <p class="reward-balance mb-0">
+        <span class="material-symbols-outlined" aria-hidden="true">stars</span>
+        <strong>{{ credits }}</strong> Credits
+      </p>
+    </div>
+
+    {% if redeemed %}
+    <div class="modal fade" id="redemptionSuccess" tabindex="-1"
+         aria-labelledby="redemptionSuccessLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2 class="modal-title fs-5" id="redemptionSuccessLabel">Reward Redeemed!</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            {% for message in flash_messages %}
+            <p class="mb-0">{{ message.message }}</p>
+            {% endfor %}
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-primary" type="button" data-bs-dismiss="modal">Done</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      window.addEventListener("DOMContentLoaded", function () {
+        const successModal = document.getElementById("redemptionSuccess");
+        if (successModal) new bootstrap.Modal(successModal).show();
+      });
+    </script>
+    {% else %}
+    {% for message in flash_messages %}
+    <div class="alert alert-{{ message.type }}" role="alert">{{ message.message }}</div>
+    {% endfor %}
+    {% endif %}
+
+    <section class="reward-toolbar card p-3 p-md-4 mb-4">
+      <form method="get" action="{{ url_for('rewards_view') }}">
+        <div class="row g-3 align-items-end">
+          <div class="col-12 col-lg-6">
+            <label class="form-label" for="rewardQuery">Search rewards</label>
+            <input class="form-control" id="rewardQuery" name="query" type="search"
+                   value="{{ query }}" placeholder="Search reward name or description">
+          </div>
+          <div class="col-6 col-lg-3">
+            <label class="form-label" for="rewardCategory">Category</label>
+            <select class="form-select" id="rewardCategory" name="category">
+              <option value="">All categories</option>
+              {% for category_option in ["Clothing", "Gift Cards", "Campus Perks"] %}
+              <option value="{{ category_option }}" {% if category == category_option %}selected{% endif %}>
+                {{ category_option }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-6 col-lg-3">
+            <label class="form-label" for="rewardSort">Sorting by</label>
+            <select class="form-select" id="rewardSort" name="sort_by">
+              <option value="name" {% if sort_by == "name" %}selected{% endif %}>Name A-Z</option>
+              <option value="points_low" {% if sort_by == "points_low" %}selected{% endif %}>Credits: low to high</option>
+              <option value="points_high" {% if sort_by == "points_high" %}selected{% endif %}>Credits: high to low</option>
+              <option value="recent" {% if sort_by == "recent" %}selected{% endif %}>Recently updated</option>
+            </select>
+          </div>
+          <div class="col-12 d-flex flex-wrap gap-2">
+            <button class="btn btn-primary" type="submit">Apply</button>
+            <a class="btn btn-outline-secondary" href="{{ url_for('rewards_view') }}">Clear filters</a>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <div class="d-flex flex-wrap gap-2 mb-3" aria-label="Reward categories">
+      <a class="category-chip {% if not category %}category-chip-active{% endif %}"
+         href="{{ url_for('rewards_view') }}">All</a>
+      {% for category_option in ["Clothing", "Gift Cards", "Campus Perks"] %}
+      <a class="category-chip {% if category == category_option %}category-chip-active{% endif %}"
+         href="{{ url_for('rewards_view').include_query_params(category=category_option) }}">
+        {{ category_option }}
+      </a>
+      {% endfor %}
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="h5 mb-0">Rewards you can redeem now</h2>
+      <span class="small text-secondary">{{ rewards|length }} rewards</span>
+    </div>
+
+    {% if rewards %}
+    <div class="row g-3">
+      {% for reward in rewards %}
+      <div class="col-12 col-sm-6 col-xl-4">
+        <article class="card reward-card h-100">
+          <img class="card-img-top reward-image"
+               src="{{ reward.reward_image_url or url_for('static', path='img/reward-placeholder.svg') }}"
+               alt="{{ reward.name }}">
+          <div class="card-body d-flex flex-column p-4">
+            <div class="d-flex flex-wrap gap-2 mb-2">
+              {% if reward.primary_category %}<span class="category-chip">{{ reward.primary_category }}</span>{% endif %}
+              {% if reward.secondary_category %}<span class="category-chip">{{ reward.secondary_category }}</span>{% endif %}
+            </div>
+            <h3 class="h5">{{ reward.name }}</h3>
+            <p class="text-secondary flex-grow-1">{{ reward.description }}</p>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <strong>{{ reward.points_cost }} Credits</strong>
+              <span class="small text-secondary">{{ reward.quantity_available }} available</span>
+            </div>
+            <button class="btn btn-primary" type="button" data-bs-toggle="modal"
+                    data-bs-target="#rewardDetails{{ reward.reward_id }}"
+                    {% if reward.quantity_available < 1 %}disabled{% endif %}>
+              Redeem
+            </button>
+          </div>
+        </article>
+      </div>
+
+      <div class="modal fade" id="rewardDetails{{ reward.reward_id }}" tabindex="-1"
+           aria-labelledby="rewardDetailsLabel{{ reward.reward_id }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h2 class="modal-title fs-5" id="rewardDetailsLabel{{ reward.reward_id }}">Redeem Reward</h2>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <img class="reward-detail-image mb-3"
+                   src="{{ reward.reward_image_url or url_for('static', path='img/reward-placeholder.svg') }}"
+                   alt="{{ reward.name }}">
+              <h3 class="h5">{{ reward.name }}</h3>
+              <div class="d-flex flex-wrap gap-2 mb-2">
+                {% if reward.primary_category %}<span class="category-chip">{{ reward.primary_category }}</span>{% endif %}
+                {% if reward.secondary_category %}<span class="category-chip">{{ reward.secondary_category }}</span>{% endif %}
+              </div>
+              <p>{{ reward.description }}</p>
+              <p><strong>{{ reward.points_cost }} credits each</strong> · {{ reward.quantity_available }} available</p>
+              <section class="similar-rewards mt-4" aria-label="Similar rewards">
+                <h4 class="h6">Similar Items</h4>
+                <div class="row g-2">
+                  {% set similar_items = namespace(count=0) %}
+                  {% for similar_reward in rewards %}
+                  {% if similar_reward.reward_id != reward.reward_id
+                        and similar_reward.primary_category == reward.primary_category
+                        and similar_items.count < 2 %}
+                  {% set similar_items.count = similar_items.count + 1 %}
+                  <div class="col-6">
+                    <div class="border rounded p-2 h-100">
+                      <img class="similar-reward-image mb-2"
+                           src="{{ similar_reward.reward_image_url or url_for('static', path='img/reward-placeholder.svg') }}"
+                           alt="">
+                      <p class="small fw-semibold mb-1">{{ similar_reward.name }}</p>
+                      <p class="small text-secondary mb-0">{{ similar_reward.points_cost }} Credits</p>
+                    </div>
+                  </div>
+                  {% endif %}
+                  {% endfor %}
+                </div>
+              </section>
+              <form id="redeemForm{{ reward.reward_id }}" method="post"
+                    action="{{ url_for('redeem_reward', reward_id=reward.reward_id) }}">
+                <label class="form-label" for="rewardQuantity{{ reward.reward_id }}">Quantity</label>
+                <input class="form-control reward-quantity" id="rewardQuantity{{ reward.reward_id }}"
+                       name="quantity" type="number" min="1" max="{{ reward.quantity_available }}"
+                       value="1" required data-points-cost="{{ reward.points_cost }}"
+                       data-credits="{{ credits }}" data-total-id="pointsTotal{{ reward.reward_id }}"
+                       data-confirm-total-id="confirmPoints{{ reward.reward_id }}"
+                       data-submit-id="confirmRedeemButton{{ reward.reward_id }}">
+                <p class="small mt-2 mb-0">Total: <strong id="pointsTotal{{ reward.reward_id }}">{{ reward.points_cost }}</strong> credits</p>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+              <button class="btn btn-primary" type="button" data-bs-toggle="modal"
+                      data-bs-target="#confirmRedeem{{ reward.reward_id }}" data-bs-dismiss="modal"
+                      {% if reward.points_cost > credits %}disabled{% endif %}>
+                Redeem Now
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal fade" id="confirmRedeem{{ reward.reward_id }}" tabindex="-1"
+           aria-labelledby="confirmRedeemLabel{{ reward.reward_id }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h2 class="modal-title fs-6" id="confirmRedeemLabel{{ reward.reward_id }}">Confirm Redeem</h2>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              Are you sure you’d like to spend <strong id="confirmPoints{{ reward.reward_id }}">{{ reward.points_cost }}</strong>
+              credits for “{{ reward.name }}”?
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+              <button class="btn btn-primary" id="confirmRedeemButton{{ reward.reward_id }}" type="submit"
+                      form="redeemForm{{ reward.reward_id }}">Confirm</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <section class="empty-state text-center p-5">
+      <h2 class="h5">No rewards found</h2>
+      <p class="text-secondary mb-0">Try another search or category.</p>
+    </section>
+    {% endif %}
+
+    <section class="card project-card mt-5" id="my-rewards">
+      <div class="card-body p-4">
+        <h2 class="h4">My Rewards</h2>
+        {% if redemptions %}
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead>
+              <tr><th>Reward</th><th>Date</th><th>Quantity</th><th>Credits spent</th></tr>
+            </thead>
+            <tbody>
+              {% for redemption, reward in redemptions %}
+              <tr>
+                <td>{{ reward.name }}</td>
+                <td>{{ redemption.redeemed_date.strftime("%b %d, %Y") }}</td>
+                <td>{{ redemption.quantity }}</td>
+                <td>{{ redemption.points_spent }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="text-secondary mb-0">Your redeemed rewards will appear here.</p>
+        {% endif %}
+      </div>
+    </section>
+  </div>
+</main>
+<script>
+  window.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".reward-quantity").forEach(function (quantityInput) {
+      const total = document.getElementById(quantityInput.dataset.totalId);
+      const confirmTotal = document.getElementById(quantityInput.dataset.confirmTotalId);
+      const submitButton = document.getElementById(quantityInput.dataset.submitId);
+      const points = Number(quantityInput.dataset.pointsCost);
+      const credits = Number(quantityInput.dataset.credits);
+      const stock = Number(quantityInput.max);
+      const maxQuantity = Math.min(stock, points > 0 ? Math.floor(credits / points) : stock);
+      quantityInput.max = String(maxQuantity);
+      quantityInput.disabled = maxQuantity < 1;
+      const updateTotal = function () {
+        const quantity = maxQuantity < 1
+          ? 1
+          : Math.min(maxQuantity, Math.max(1, Number(quantityInput.value) || 1));
+        if (maxQuantity >= 1 && quantityInput.value !== String(quantity)) {
+          quantityInput.value = String(quantity);
+        }
+        const totalPoints = points * quantity;
+        if (total) total.textContent = String(totalPoints);
+        if (confirmTotal) confirmTotal.textContent = String(totalPoints);
+        if (submitButton) {
+          submitButton.disabled = maxQuantity < 1 || totalPoints > credits;
+        }
+      };
+      quantityInput.addEventListener("input", updateTotal);
+      updateTotal();
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Browse Projects | StudentCare{% endblock %}
+
+{% block content %}
+{% include "site-nav.html" %}
+<main class="project-search-page py-5">
+  <div class="container">
+    <div class="mb-4">
+      <p class="landing-kicker text-uppercase mb-1">Find your next opportunity</p>
+      <h1 class="h2 mb-2">Volunteer Projects</h1>
+      <p class="text-secondary mb-0">Search approved opportunities from the volunteer community.</p>
+    </div>
+
+    <form class="project-search-form card p-3 p-md-4 mb-4" method="get"
+          action="{{ url_for('project_search_view') }}">
+      <div class="row g-3 align-items-end">
+        <div class="col-12 col-md-7">
+          <label class="form-label" for="projectQuery">Search projects</label>
+          <input class="form-control" id="projectQuery" name="query" type="search"
+                 value="{{ query }}" placeholder="Project, organization, or location">
+        </div>
+        <div class="col-12 col-md-3">
+          <label class="form-label" for="projectCategory">Category</label>
+          <input class="form-control" id="projectCategory" name="category" type="search"
+                 value="{{ category }}" placeholder="Enter a category">
+        </div>
+        <div class="col-12 col-md-2 d-grid">
+          <button class="btn btn-primary" type="submit">Search</button>
+        </div>
+      </div>
+    </form>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="h5 mb-0">{% if query or category %}Search Results{% else %}Recently Listed{% endif %}</h2>
+      <span class="small text-secondary">{{ projects|length }} projects</span>
+    </div>
+
+    {% if projects %}
+    <div class="row g-3">
+      {% for project, organization in projects %}
+      <div class="col-12 col-lg-6">
+        <article class="card project-card h-100">
+          <img class="card-img-top project-cover-image"
+               src="{{ project.project_cover_image or url_for('static', path='img/project-cover-placeholder.svg') }}"
+               alt="{{ project.project_name }} cover">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between gap-3">
+              <div>
+                <p class="small text-secondary mb-1">{{ organization.organization_name }}</p>
+                <h3 class="h4">{{ project.project_name }}</h3>
+              </div>
+              <span class="badge rounded-pill project-status">Approved</span>
+            </div>
+            <p class="text-secondary">{{ project.location }}</p>
+            <p>{{ project.description }}</p>
+            <div class="d-flex flex-wrap gap-2 small mb-3">
+              {% if project.primary_category %}<span class="category-chip">{{ project.primary_category }}</span>{% endif %}
+              {% if project.secondary_category %}<span class="category-chip">{{ project.secondary_category }}</span>{% endif %}
+            </div>
+            <div class="small text-secondary">
+              <span>{{ project.current_volunteers }} / {{ project.max_volunteers }} volunteers</span>
+              <span class="mx-2">·</span>
+              <span>{{ project.estimated_hours_per_session }} hours per session</span>
+            </div>
+            <a class="btn btn-outline-primary mt-3"
+               href="{{ url_for('project_detail_view', volunteer_project_id=project.volunteer_project_id) }}">
+              View Project
+            </a>
+          </div>
+        </article>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <section class="empty-state text-center p-5">
+      <h2 class="h5">No approved projects found</h2>
+      <p class="text-secondary mb-0">Try another search, or check back when new listings are approved.</p>
+    </section>
+    {% endif %}
+  </div>
+</main>
+{% endblock %}

@@ -1,0 +1,61 @@
+<nav class="navbar navbar-expand-lg site-navbar">
+  <div class="container">
+    <a class="navbar-brand site-brand" href="{{ url_for('index_view') }}">
+      <img src="{{ url_for('static', path='img/studentcare-logo.jpg') }}"
+           alt="StudentCare Volunteer Community">
+      <span class="site-brand-copy">
+        <strong>StudentCare</strong>
+        <small>Volunteer Community</small>
+      </span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+            data-bs-target="#studentCareNavigation" aria-controls="studentCareNavigation"
+            aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="studentCareNavigation">
+      <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+        <li class="nav-item dropdown">
+          <button class="nav-link dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                  aria-expanded="false">Projects</button>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{{ url_for('project_search_view') }}">Browse Projects</a></li>
+            {% if user_logged_in %}
+            <li><a class="dropdown-item" href="{{ url_for('user_home_view') }}">Active Projects</a></li>
+            {% endif %}
+          </ul>
+        </li>
+        <li class="nav-item dropdown">
+          <button class="nav-link dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                  aria-expanded="false">Rewards</button>
+          <ul class="dropdown-menu">
+            {% if user_logged_in and user.role == "regular_user" %}
+            <li><a class="dropdown-item" href="{{ url_for('rewards_view') }}">Browse Rewards</a></li>
+            <li><h6 class="dropdown-header">Browse by category</h6></li>
+            <li><a class="dropdown-item" href="{{ url_for('rewards_view').include_query_params(category='Clothing') }}">Clothing</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('rewards_view').include_query_params(category='Gift Cards') }}">Gift Cards</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('rewards_view').include_query_params(category='Campus Perks') }}">Campus Perks</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{{ url_for('rewards_view') }}#my-rewards">My Rewards</a></li>
+            {% else %}
+            <li><h6 class="dropdown-header">Browse by category</h6></li>
+            <li><a class="dropdown-item" href="{{ url_for('login_view') }}">Sign in to browse rewards</a></li>
+            {% endif %}
+          </ul>
+        </li>
+        {% if user_logged_in %}
+        <li class="nav-item">
+          <a class="btn btn-outline-primary ms-lg-2" href="{{ url_for('profile_view') }}">My Profile</a>
+        </li>
+        <li class="nav-item">
+          <a class="btn btn-primary ms-lg-1" href="{{ url_for('logout') }}">Log out</a>
+        </li>
+        {% else %}
+        <li class="nav-item">
+          <a class="btn btn-outline-primary ms-lg-2" href="{{ url_for('login_view') }}">Sign in</a>
+        </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>

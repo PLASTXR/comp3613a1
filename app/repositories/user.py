@@ -1,4 +1,5 @@
 from sqlmodel import Session, select, func
+from app.models.student import Student
 from app.models.user import UserBase, User
 from typing import Optional, Tuple
 from app.utilities.pagination import Pagination
@@ -15,6 +16,16 @@ class UserRepository:
         try:
             user_db = User.model_validate(user_data)
             self.db.add(user_db)
+            if user_db.role == "regular_user":
+                self.db.flush()
+                if user_db.id is None:
+                    raise RuntimeError("The user ID was not assigned after insert.")
+                self.db.add(
+                    Student(
+                        student_id=user_db.id,
+                        contact_email=str(user_db.email),
+                    )
+                )
             self.db.commit()
             self.db.refresh(user_db)
             return user_db

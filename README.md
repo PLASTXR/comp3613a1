@@ -84,7 +84,7 @@ Defaults use a local SQLite file (`database.db`). Change `SECRET_KEY` before any
 
 ### 4. Initialise the database (Python CLI)
 
-Creates tables (drops existing by default) **and seeds demo users**:
+Creates tables (drops existing by default) **and seeds demo users, 3 volunteer organizations, 10 approved volunteer projects, and sample rewards**:
 
 ```bash
 python manage.py init
@@ -95,6 +95,9 @@ python manage.py init
 | `bob`    | `bobpass`   | regular_user |
 | `admin`  | `adminpass` | admin        |
 
+The volunteer organizations and project listings are sample data. Projects are divided among the three organizations and appear in public search/recent listings. `Digital Skills for Seniors` is seeded at full capacity to demonstrate the closed-application state.
+The seed also creates nine reward listings across Clothing, Gift Cards, and Campus Perks. If `bob` has zero credits and no prior redemption, the seed gives the student profile 500 demo credits. Once a redemption is recorded, rerunning the seed does not replenish spent credits.
+
 Flags:
 
 ```bash
@@ -102,7 +105,7 @@ python manage.py init --no-drop   # create/seed without dropping
 python manage.py init --no-seed   # tables only (skip demo users)
 ```
 
-Seeding skips usernames that already exist. Add more rows in `cmd_seed` in `app/cli.py`. `python manage.py seed` still works if you only want to (re)insert demo users.
+Seeding is idempotent: existing usernames, organization names, organization/project pairs, and reward names are skipped, while the designated full-capacity demo project is kept at its volunteer limit. Add sample rows in `cmd_seed` in `app/cli.py`. `python manage.py seed` inserts any missing demo accounts, organizations, projects, and rewards without dropping existing data.
 
 ```bash
 python manage.py users
@@ -129,8 +132,8 @@ Commands are implemented in `app/cli.py` (stdlib `argparse`) and invoked via `ma
 
 | Command | Purpose |
 |---------|---------|
-| `python manage.py init` | Drop (default), create DB tables, and seed demo users |
-| `python manage.py seed` | Insert demo users only (also part of `init`) |
+| `python manage.py init` | Drop (default), create DB tables, and seed demo users, 3 organizations, 10 projects, and 9 rewards |
+| `python manage.py seed` | Idempotently add any missing demo users, organizations, projects, and rewards (also part of `init`) |
 | `python manage.py run` | Start Uvicorn (reload unless `ENV=production`) |
 | `python manage.py users` | Print users in the DB |
 | `python manage.py transcripts` | Optional: package agent-written `docs/transcripts/*.md` into INDEX + zip (no IDE scrape) |

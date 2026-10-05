@@ -1,12 +1,13 @@
 {% extends "base.html" %}
-{% block title %}Register{% endblock %}
+{% block title %}Create an account | StudentCare{% endblock %}
 
 {% block content %}
 <div class="auth-shell">
   <div class="auth-panel">
     <a class="auth-back" href="{{ url_for('index_view') }}">← Home</a>
-    <div class="brand-wordmark">FastStarter</div>
-    <p class="auth-tagline">Create an account</p>
+    <img class="auth-logo" src="{{ url_for('static', path='img/studentcare-logo.jpg') }}" alt="StudentCare Volunteer Community">
+    <h1 class="brand-wordmark h3 text-center">Join StudentCare</h1>
+    <p class="auth-tagline text-center">Create your account and make every hour count.</p>
 
     <form method="POST" action="{{ url_for('register_view') }}">
       <div class="mb-3">

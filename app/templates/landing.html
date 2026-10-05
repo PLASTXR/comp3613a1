@@ -1,43 +1,56 @@
 {% extends "base.html" %}
-{% block title %}FastStarter{% endblock %}
+{% block title %}StudentCare | Volunteer Community{% endblock %}
 
 {% block content %}
-<div class="landing">
-  <div class="landing-orb" aria-hidden="true"></div>
-  <div class="landing-orb landing-orb-2" aria-hidden="true"></div>
+{% include "site-nav.html" %}
+<main>
+  <section class="landing-hero">
+    <div class="container text-center">
+      <h1 class="brand-wordmark">Campus Volunteerism Centre</h1>
+      <p class="landing-lead">Volunteer and make an impact.</p>
+      <a class="btn btn-mint btn-lg px-4" href="{{ url_for('project_search_view') }}">Get Started</a>
+    </div>
+  </section>
 
-  <header class="landing-nav">
-    <a class="brand-wordmark" href="{{ url_for('index_view') }}">FastStarter</a>
-    <div class="landing-nav-actions">
-      {% if user_logged_in %}
-      <a class="btn-landing btn-landing-ghost" href="{{ app_home }}">Open app</a>
-      <a class="btn-landing btn-landing-ghost" href="{{ url_for('logout') }}">Sign out</a>
+  <section class="recent-projects py-5">
+    <div class="container">
+      <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+        <div>
+          <p class="landing-kicker text-uppercase mb-1">Find your next opportunity</p>
+          <h2 class="h2 mb-0">Recently Listed Projects</h2>
+        </div>
+        <a class="btn btn-outline-primary" href="{{ url_for('project_search_view') }}">Browse all projects</a>
+      </div>
+      {% if recent_projects %}
+      <div class="row g-3">
+        {% for project, organization in recent_projects %}
+        <div class="col-12 col-md-6 col-xl-4">
+          <article class="card project-card h-100">
+            <img class="card-img-top recent-project-image"
+                 src="{{ project.project_cover_image or url_for('static', path='img/project-cover-placeholder.svg') }}"
+                 alt="{{ project.project_name }} cover">
+            <div class="card-body p-4">
+              <p class="small text-secondary mb-1">{{ organization.organization_name }}</p>
+              <h3 class="h5">{{ project.project_name }}</h3>
+              <p class="text-secondary mb-2">{{ project.location }}</p>
+              <p class="mb-3">{{ project.description }}</p>
+              <a class="btn btn-outline-primary"
+                 href="{{ url_for('project_detail_view', volunteer_project_id=project.volunteer_project_id) }}">View Project</a>
+            </div>
+          </article>
+        </div>
+        {% endfor %}
+      </div>
       {% else %}
-      <a class="btn-landing btn-landing-ghost" href="{{ url_for('login_view') }}">Sign in</a>
-      <a class="btn-landing btn-landing-primary" href="{{ url_for('register_view') }}">Get started</a>
+      <div class="empty-state text-center p-5">
+        <h3 class="h5">No approved projects listed yet</h3>
+        <p class="text-secondary mb-0">Check back soon for new volunteer opportunities.</p>
+      </div>
       {% endif %}
     </div>
-  </header>
-
-  <main class="landing-hero">
-    <p class="landing-kicker">Coursework starter</p>
-    <h1 class="brand-wordmark">FastStarter</h1>
-    <p class="landing-lead">
-      A placeholder landing page for your COMP 3613 app.
-      Phase 5 theming replaces these colors, type, and copy with your brand.
-    </p>
-    <div class="landing-cta">
-      {% if user_logged_in %}
-      <a class="btn-landing btn-landing-primary" href="{{ app_home }}">Continue to app</a>
-      {% else %}
-      <a class="btn-landing btn-landing-primary" href="{{ url_for('register_view') }}">Create account</a>
-      <a class="btn-landing btn-landing-ghost" href="{{ url_for('login_view') }}">Sign in</a>
-      {% endif %}
-    </div>
-  </main>
-
-  <footer class="landing-foot">
-    Demo logins after <code>python manage.py init</code>: bob / bobpass · admin / adminpass
-  </footer>
-</div>
+  </section>
+</main>
+<footer class="site-footer py-4">
+  <div class="container text-center small">StudentCare Volunteer Community</div>
+</footer>
 {% endblock %}

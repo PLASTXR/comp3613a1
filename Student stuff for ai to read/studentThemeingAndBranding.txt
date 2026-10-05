@@ -1,0 +1,15 @@
+https://colorhunt.co/palette/1b3c53234c6a456882e3e3e3
+
+Primary color: #234C6A
+Primary dark: #1B3C53
+Primary light: #456882
+Accent: #f0a93f
+Accent light: #f7c883
+
+Text primary: very dark
+Text secondary: gray
+
+Headings front: DM Sans
+Body: Montserrat
+
+wordmark/tone: Effort is visible. Every hour counts. Gold accents only on reward UI. Other ui accents can be mint/aqua colored

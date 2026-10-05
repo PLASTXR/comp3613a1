@@ -4,6 +4,7 @@ import time
 from contextlib import contextmanager
 
 from sqlalchemy.exc import DBAPIError, OperationalError, ProgrammingError
+from sqlalchemy import inspect, text
 from sqlmodel import SQLModel, Session, create_engine
 
 from app.config import get_settings
@@ -38,6 +39,63 @@ def create_db_and_tables() -> None:
     import app.models  # noqa: F401
 
     SQLModel.metadata.create_all(engine)
+    _migrate_volunteer_project_columns()
+    _migrate_redemption_columns()
+
+
+def _migrate_volunteer_project_columns() -> None:
+    table_name = "volunteer_project"
+    inspector = inspect(engine)
+    if not inspector.has_table(table_name):
+        return
+
+    columns = {column["name"] for column in inspector.get_columns(table_name)}
+    missing_status = "status" not in columns
+    missing_created_at = "created_at" not in columns
+    if not missing_status and not missing_created_at:
+        return
+
+    timestamp_type = "TIMESTAMP WITH TIME ZONE" if engine.dialect.name == "postgresql" else "DATETIME"
+    with engine.begin() as connection:
+        if missing_status:
+            connection.execute(
+                text(
+                    "ALTER TABLE volunteer_project "
+                    "ADD COLUMN status VARCHAR(16) NOT NULL DEFAULT 'pending'"
+                )
+            )
+        if missing_created_at:
+            connection.execute(
+                text(
+                    "ALTER TABLE volunteer_project "
+                    f"ADD COLUMN created_at {timestamp_type}"
+                )
+            )
+            connection.execute(
+                text(
+                    "UPDATE volunteer_project SET created_at = CURRENT_TIMESTAMP "
+                    "WHERE created_at IS NULL"
+                )
+            )
+
+
+def _migrate_redemption_columns() -> None:
+    table_name = "redemption"
+    inspector = inspect(engine)
+    if not inspector.has_table(table_name):
+        return
+
+    columns = {column["name"] for column in inspector.get_columns(table_name)}
+    if "quantity" in columns:
+        return
+
+    with engine.begin() as connection:
+        connection.execute(
+            text(
+                "ALTER TABLE redemption "
+                "ADD COLUMN quantity INTEGER NOT NULL DEFAULT 1"
+            )
+        )
 
 
 def drop_all() -> None:

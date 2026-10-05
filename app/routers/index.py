@@ -1,8 +1,10 @@
 from fastapi import Request
 from fastapi.responses import HTMLResponse
 
-from app.dependencies.auth import IsUserLoggedIn, get_current_user, is_admin
+from app.dependencies.auth import IsUserLoggedIn, get_current_user
 from app.dependencies.session import SessionDep
+from app.repositories.volunteer_project import VolunteerProjectRepository
+from app.services.volunteer_project import VolunteerProjectService
 from . import router, templates
 
 
@@ -12,19 +14,18 @@ async def index_view(
     user_logged_in: IsUserLoggedIn,
     db: SessionDep,
 ):
-    app_home = request.url_for("login_view")
+    user = None
     if user_logged_in:
         user = await get_current_user(request, db)
-        if await is_admin(user):
-            app_home = request.url_for("admin_home_view")
-        else:
-            app_home = request.url_for("user_home_view")
 
+    project_service = VolunteerProjectService(VolunteerProjectRepository(db))
+    recent_projects = project_service.get_recent_public_projects()
     return templates.TemplateResponse(
         request=request,
         name="landing.html",
         context={
             "user_logged_in": user_logged_in,
-            "app_home": app_home,
+            "user": user,
+            "recent_projects": recent_projects,
         },
     )

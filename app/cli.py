@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from datetime import date, timedelta
 from pathlib import Path
 
 
@@ -23,7 +24,7 @@ def _ensure_models_loaded() -> None:
 
 
 def cmd_init(args: argparse.Namespace) -> None:
-    """Create database tables (drops existing by default) and seed demo users."""
+    """Create tables and seed demo accounts, organizations, and projects."""
     from app.config import get_settings
     from app.database import drop_all, ensure_db_and_tables
 
@@ -47,15 +48,23 @@ def cmd_init(args: argparse.Namespace) -> None:
 
 
 def cmd_seed(args: argparse.Namespace) -> None:
-    """Insert demo users.
+    """Insert demo accounts, volunteer organizations, and approved projects.
 
     bob / bobpass       (regular_user)
     admin / adminpass   (admin)
     """
     from app.database import ensure_db_and_tables, get_cli_session
+    from app.models.reward import Redemption, RewardListing
+    from app.models.student import Student
+    from app.models.volunteer_project import (
+        VolunteerOrganization,
+        VolunteerProject,
+        VolunteerProjectStatus,
+    )
     from app.repositories.user import UserRepository
     from app.schemas.user import AdminCreate, RegularUserCreate
     from app.utilities.security import encrypt_password
+    from sqlmodel import select
 
     _ensure_models_loaded()
     ensure_db_and_tables()
@@ -64,9 +73,152 @@ def cmd_seed(args: argparse.Namespace) -> None:
         ("bob", "bob@example.com", "bobpass", "regular_user"),
         ("admin", "admin@example.com", "adminpass", "admin"),
     ]
+    organization_seeds = [
+        {
+            "organization_name": "Green Earth Collective",
+            "contact_email": "hello@greenearth.example",
+            "contact_phone": "555-0101",
+            "address": "12 Garden Lane",
+        },
+        {
+            "organization_name": "Campus Community Pantry",
+            "contact_email": "volunteer@campuspantry.example",
+            "contact_phone": "555-0102",
+            "address": "44 University Avenue",
+        },
+        {
+            "organization_name": "Neighbourhood Learning Network",
+            "contact_email": "team@learningnetwork.example",
+            "contact_phone": "555-0103",
+            "address": "8 Library Square",
+        },
+    ]
+    today = date.today()
+    project_seeds = [
+        {
+            "organization": "Green Earth Collective",
+            "project_name": "Community Garden Crew",
+            "primary_category": "Environment",
+            "secondary_category": "Community",
+            "description": "Help prepare garden beds, plant seasonal vegetables, and care for shared growing spaces.",
+            "location": "Riverside Community Garden",
+            "estimated_hours_per_session": 2,
+            "availability": "weekends",
+        },
+        {
+            "organization": "Green Earth Collective",
+            "project_name": "Park Clean-Up Team",
+            "primary_category": "Environment",
+            "secondary_category": "Community",
+            "description": "Join a local team to collect litter and keep neighbourhood parks welcoming.",
+            "location": "Cedar Grove Park",
+            "estimated_hours_per_session": 3,
+            "availability": "weekends",
+        },
+        {
+            "organization": "Green Earth Collective",
+            "project_name": "Native Plant Restoration",
+            "primary_category": "Environment",
+            "secondary_category": "Education",
+            "description": "Support habitat restoration by planting native species and removing invasive plants.",
+            "location": "North Creek Nature Reserve",
+            "estimated_hours_per_session": 3,
+            "availability": "weekdays",
+        },
+        {
+            "organization": "Green Earth Collective",
+            "project_name": "Recycling Education Booth",
+            "primary_category": "Environment",
+            "secondary_category": "Education",
+            "description": "Share practical recycling tips with visitors at community events.",
+            "location": "Student Union Plaza",
+            "estimated_hours_per_session": 2,
+            "availability": "weekdays",
+        },
+        {
+            "organization": "Campus Community Pantry",
+            "project_name": "Weekly Pantry Sorting",
+            "primary_category": "Social Outreach",
+            "secondary_category": "Community",
+            "description": "Sort donated groceries and prepare pantry shelves for student and family visitors.",
+            "location": "Campus Community Pantry",
+            "estimated_hours_per_session": 2,
+            "availability": "weekdays",
+        },
+        {
+            "organization": "Campus Community Pantry",
+            "project_name": "Fresh Food Distribution",
+            "primary_category": "Social Outreach",
+            "secondary_category": "Community",
+            "description": "Help welcome visitors and distribute fresh food hampers during weekly service hours.",
+            "location": "Campus Community Pantry",
+            "estimated_hours_per_session": 3,
+            "availability": "weekends",
+        },
+        {
+            "organization": "Campus Community Pantry",
+            "project_name": "Community Meal Preparation",
+            "primary_category": "Social Outreach",
+            "secondary_category": "Community",
+            "description": "Prepare ingredients and package ready-to-share meals with the pantry kitchen team.",
+            "location": "Campus Teaching Kitchen",
+            "estimated_hours_per_session": 3,
+            "availability": "weekends",
+        },
+        {
+            "organization": "Neighbourhood Learning Network",
+            "project_name": "After-School Reading Buddies",
+            "primary_category": "Education",
+            "secondary_category": "Youth",
+            "description": "Read with elementary learners and encourage confidence through weekly literacy activities.",
+            "location": "Maple Street Learning Centre",
+            "estimated_hours_per_session": 2,
+            "availability": "weekdays",
+        },
+        {
+            "organization": "Neighbourhood Learning Network",
+            "project_name": "Homework Help Club",
+            "primary_category": "Education",
+            "secondary_category": "Youth",
+            "description": "Support middle-school students with homework planning and subject review.",
+            "location": "Westside Public Library",
+            "estimated_hours_per_session": 2,
+            "availability": "weekdays",
+        },
+        {
+            "organization": "Neighbourhood Learning Network",
+            "project_name": "Digital Skills for Seniors",
+            "primary_category": "Education",
+            "secondary_category": "Community",
+            "description": "Help older adults practise everyday computer, smartphone, and online safety skills.",
+            "location": "Neighbourhood Learning Hub",
+            "estimated_hours_per_session": 2,
+            "availability": "weekends",
+            "full_for_demo": True,
+        },
+    ]
+    reward_seeds = [
+        ("StudentCare T-Shirt", "A soft cotton StudentCare shirt.", "Clothing", 80, 30),
+        ("Campus Hoodie", "A warm hoodie for cool campus days.", "Clothing", 220, 12),
+        ("Campus Cap", "A classic cap in campus colours.", "Clothing", 120, 20),
+        ("Campus Cafe Gift Card", "A gift card for a campus cafe visit.", "Gift Cards", 150, 15),
+        ("Campus Bookstore Gift Card", "Credit toward books and supplies.", "Gift Cards", 250, 10),
+        ("Community Grocery Gift Card", "A grocery gift card from a local partner.", "Gift Cards", 300, 8),
+        ("Library Printing Credits", "Printing credit for campus library services.", "Campus Perks", 50, 100),
+        ("Study Room Booking", "Reserve a study room for a group session.", "Campus Perks", 100, 25),
+        ("Campus Event Pass", "Admission to a participating campus event.", "Campus Perks", 125, 20),
+    ]
 
     created = 0
     skipped = 0
+    organizations_created = 0
+    organizations_skipped = 0
+    projects_created = 0
+    projects_skipped = 0
+    projects_updated = 0
+    rewards_created = 0
+    rewards_skipped = 0
+    bob_credits_initialized = False
     with get_cli_session() as session:
         repo = UserRepository(session)
         for username, email, password, role in demo_users:
@@ -86,7 +238,121 @@ def cmd_seed(args: argparse.Namespace) -> None:
             print(f"  create {username} ({role})")
             created += 1
 
-    print(f"Seed done — created {created}, skipped {skipped}.")
+        bob = repo.get_by_username("bob")
+        if bob is not None and bob.id is not None:
+            bob_student = session.get(Student, bob.id)
+            if bob_student is not None and bob_student.credits == 0:
+                redemption_statement = select(Redemption).where(
+                    Redemption.student_id == bob.id
+                )
+                if session.exec(redemption_statement).first() is None:
+                    bob_student.credits = 500
+                    session.add(bob_student)
+                    bob_credits_initialized = True
+
+        organization_ids: dict[str, int] = {}
+        for organization_data in organization_seeds:
+            statement = select(VolunteerOrganization).where(
+                VolunteerOrganization.organization_name
+                == organization_data["organization_name"]
+            )
+            organization = session.exec(statement).one_or_none()
+            if organization is None:
+                organization = VolunteerOrganization(**organization_data)
+                session.add(organization)
+                session.flush()
+                organizations_created += 1
+                print(f"  create organization: {organization.organization_name}")
+            else:
+                organizations_skipped += 1
+                print(f"  skip organization: {organization.organization_name} (already exists)")
+            if organization.volunteer_organization_id is None:
+                raise RuntimeError(
+                    f"Could not assign an ID to {organization.organization_name}."
+                )
+            organization_ids[organization.organization_name] = organization.volunteer_organization_id
+
+        for index, project_data in enumerate(project_seeds):
+            project_name = project_data["project_name"]
+            organization_name = project_data["organization"]
+            statement = select(VolunteerProject).where(
+                VolunteerProject.project_name == project_name,
+                VolunteerProject.volunteer_organization_id
+                == organization_ids[organization_name],
+            )
+            project = session.exec(statement).one_or_none()
+            if project is not None:
+                if (
+                    project_data.get("full_for_demo")
+                    and project.current_volunteers != project.max_volunteers
+                ):
+                    project.current_volunteers = project.max_volunteers
+                    projects_updated += 1
+                    print(f"  update project: {project_name} (full capacity demo)")
+                projects_skipped += 1
+                print(f"  skip project: {project_name} (already exists)")
+                continue
+
+            starts_at = today + timedelta(days=7 + index * 2)
+            max_volunteers = 12 + (index % 4) * 3
+            project = VolunteerProject(
+                volunteer_organization_id=organization_ids[organization_name],
+                project_name=project_name,
+                primary_category=project_data["primary_category"],
+                secondary_category=project_data["secondary_category"],
+                current_volunteers=(
+                    max_volunteers if project_data.get("full_for_demo") else 0
+                ),
+                max_volunteers=max_volunteers,
+                application_requirements="No previous experience required.",
+                commitment_type="weekly",
+                estimated_hours_per_session=project_data[
+                    "estimated_hours_per_session"
+                ],
+                availability=project_data["availability"],
+                start_date=starts_at,
+                end_date=starts_at + timedelta(days=180),
+                description=project_data["description"],
+                location=project_data["location"],
+                status=VolunteerProjectStatus.APPROVED,
+            )
+            session.add(project)
+            projects_created += 1
+            print(f"  create project: {project_name} ({organization_name})")
+
+        for name, description, category, points_cost, quantity_available in reward_seeds:
+            statement = select(RewardListing).where(RewardListing.name == name)
+            reward = session.exec(statement).one_or_none()
+            if reward is not None:
+                rewards_skipped += 1
+                print(f"  skip reward: {name} (already exists)")
+                continue
+
+            session.add(
+                RewardListing(
+                    name=name,
+                    description=description,
+                    primary_category=category,
+                    points_cost=points_cost,
+                    quantity_available=quantity_available,
+                    reward_image_url="/static/img/reward-placeholder.svg",
+                )
+            )
+            rewards_created += 1
+            print(f"  create reward: {name}")
+
+        session.commit()
+
+    print(
+        "Seed done — "
+        f"users created {created}, skipped {skipped}; "
+        f"organizations created {organizations_created}, skipped {organizations_skipped}; "
+        f"projects created {projects_created}, skipped {projects_skipped}, "
+        f"updated {projects_updated}; rewards created {rewards_created}, "
+        f"skipped {rewards_skipped}."
+    )
+    if bob_credits_initialized:
+        print("Initialized bob's student profile with 500 demo credits.")
     print("Login with bob/bobpass or admin/adminpass")
 
 
@@ -221,7 +487,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_init = sub.add_parser(
         "init",
-        help="Create DB tables and seed demo users (drops existing tables by default)",
+        help=(
+            "Create DB tables and seed demo users, volunteer organizations, "
+            "and approved projects (drops existing tables by default)"
+        ),
     )
     p_init.add_argument(
         "--no-drop",
@@ -239,7 +508,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_seed = sub.add_parser(
         "seed",
-        help="Insert demo users only (idempotent; also runs as part of init)",
+        help=(
+            "Idempotently add demo users, volunteer organizations, "
+            "and approved projects"
+        ),
     )
     p_seed.set_defaults(func=cmd_seed)
 

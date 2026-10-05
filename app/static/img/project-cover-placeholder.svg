@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 480" role="img" aria-labelledby="title">
+  <title id="title">StudentCare volunteer project cover</title>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1B3C53"/>
+      <stop offset="1" stop-color="#456882"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#72D8C2"/>
+      <stop offset="1" stop-color="#B7F0DF"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="480" fill="url(#background)"/>
+  <circle cx="980" cy="110" r="190" fill="#FFFFFF" opacity=".08"/>
+  <circle cx="1080" cy="410" r="250" fill="#FFFFFF" opacity=".07"/>
+  <path d="M640 480c42-112 95-190 175-253 76 76 104 157 74 253" fill="url(#accent)" opacity=".9"/>
+  <path d="M814 311c-71-11-121-52-143-120 76-12 134 12 171 72" fill="#B7F0DF"/>
+  <path d="M810 344c49-72 111-103 187-94-25 72-76 117-153 134" fill="#72D8C2"/>
+  <path d="M795 480c5-72 21-131 49-181" fill="none" stroke="#1B3C53" stroke-width="13" stroke-linecap="round" opacity=".5"/>
+  <text x="86" y="205" fill="#FFFFFF" font-family="Montserrat, Arial, sans-serif" font-size="28" font-weight="600" letter-spacing="5">STUDENTCARE VOLUNTEER COMMUNITY</text>
+  <text x="82" y="295" fill="#FFFFFF" font-family="DM Sans, Arial, sans-serif" font-size="64" font-weight="700">Make an impact</text>
+  <text x="86" y="350" fill="#D5EEE9" font-family="DM Sans, Arial, sans-serif" font-size="28">Find a project. Share your time. Grow together.</text>
+</svg>

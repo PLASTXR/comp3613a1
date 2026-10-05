@@ -1,9 +1,108 @@
 {% extends "authenticated-base.html" %}
-{% block title %}Home{% endblock %}
+{% block title %}My Active Projects | StudentCare{% endblock %}
 
 {% block subpage_content %}
-<div class="container-fluid py-2">
-  <h1 class="h4 mb-2">Home</h1>
-  <p class="text-muted mb-0">Workflow screens replace this shell in Phase 5 implement.</p>
-</div>
+<main class="container-fluid px-0">
+  <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+    <div>
+      <p class="text-uppercase small fw-semibold mb-1 text-secondary">Your contribution</p>
+      <h1 class="h2 mb-1">My Active Projects</h1>
+      <p class="text-secondary mb-0">Keep your volunteer hours up to date.</p>
+    </div>
+  </div>
+
+  {% if active_records %}
+  <div class="row g-3">
+    {% for record, project, organization in active_records %}
+    <div class="col-12 col-xl-6">
+      <article class="card project-card h-100">
+        <div class="card-body p-4">
+          <div class="d-flex justify-content-between align-items-start gap-3">
+            <div>
+              <p class="small text-secondary mb-1">{{ organization.organization_name }}</p>
+              <h2 class="h4 mb-2">{{ project.project_name }}</h2>
+            </div>
+            <span class="badge rounded-pill text-bg-success-subtle border border-success-subtle">
+              Active
+            </span>
+          </div>
+          <p class="text-secondary mb-3">{{ project.location }}</p>
+          {% if project.description %}
+          <p class="mb-3">{{ project.description }}</p>
+          {% endif %}
+          <div class="d-flex flex-wrap gap-3 small text-secondary mb-3">
+            <span>{{ record.verified_hours }} verified hours</span>
+            <span>{{ record.unverified_hours }} hours pending verification</span>
+          </div>
+          <p class="small text-secondary mb-3">
+            {{ project.start_date.strftime("%b %d, %Y") if project.start_date else "" }}
+            {% if project.end_date %}– {{ project.end_date.strftime("%b %d, %Y") }}{% endif %}
+          </p>
+          <button class="btn btn-primary" type="button" data-bs-toggle="modal"
+                  data-bs-target="#logHours{{ record.volunteer_record_id }}">
+            Log Hours
+          </button>
+        </div>
+      </article>
+    </div>
+
+    <div class="modal fade" id="logHours{{ record.volunteer_record_id }}" tabindex="-1"
+         aria-labelledby="logHoursLabel{{ record.volunteer_record_id }}" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <form method="post" enctype="multipart/form-data"
+                action="{{ url_for('log_volunteer_hours', volunteer_record_id=record.volunteer_record_id) }}">
+            <div class="modal-header">
+              <div>
+                <p class="small text-secondary mb-1">Log volunteer hours</p>
+                <h2 class="modal-title fs-5" id="logHoursLabel{{ record.volunteer_record_id }}">
+                  {{ project.project_name }}
+                </h2>
+              </div>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label" for="volunteerDate{{ record.volunteer_record_id }}">Date of service</label>
+                <input class="form-control" id="volunteerDate{{ record.volunteer_record_id }}"
+                       name="volunteer_date" type="date" min="{{ record.start_date.isoformat() }}"
+                       max="{{ today.isoformat() }}" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="hours{{ record.volunteer_record_id }}">Hours volunteered</label>
+                <input class="form-control" id="hours{{ record.volunteer_record_id }}"
+                       name="hours" type="number" min="1" step="1" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="description{{ record.volunteer_record_id }}">What did you do?</label>
+                <textarea class="form-control" id="description{{ record.volunteer_record_id }}"
+                          name="description" rows="3" required></textarea>
+              </div>
+              <div>
+                <label class="form-label" for="evidence{{ record.volunteer_record_id }}">Attach evidence (optional)</label>
+                <input class="form-control" id="evidence{{ record.volunteer_record_id }}"
+                       name="evidence" type="file" accept=".jpg,.jpeg,.png,.pdf">
+                <div class="form-text">JPG, PNG, or PDF; up to 5 MB.</div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+              <button class="btn btn-primary" type="submit">Submit Hours</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <section class="empty-state text-center p-5">
+    <span class="material-symbols-outlined empty-state-icon" aria-hidden="true">volunteer_activism</span>
+    <h2 class="h4 mt-3">No active projects yet</h2>
+    <p class="text-secondary mb-0">
+      Active volunteer projects will appear here when you have a current participation record.
+    </p>
+  </section>
+  {% endif %}
+</main>
 {% endblock %}

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 540" role="img" aria-labelledby="title">
+  <title id="title">StudentCare reward</title>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFF4D8"/>
+      <stop offset="1" stop-color="#F7C883"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="540" fill="url(#background)"/>
+  <circle cx="450" cy="255" r="155" fill="#FFFFFF" opacity=".6"/>
+  <path d="M450 145c-40-61-136-24-101 42 21 40 78 71 101 88 23-17 80-48 101-88 35-66-61-103-101-42Z" fill="#234C6A"/>
+  <path d="M320 278h260v145H320z" fill="#456882"/>
+  <path d="M420 278h60v145h-60z" fill="#72D8C2"/>
+  <path d="M300 254h300v56H300z" fill="#1B3C53"/>
+  <path d="M450 254c-35-5-80-34-77-68 3-31 53-31 77 27 24-58 74-58 77-27 3 34-42 63-77 68Z" fill="#72D8C2"/>
+  <text x="450" y="485" text-anchor="middle" fill="#1B3C53" font-family="Montserrat, Arial, sans-serif" font-size="25" font-weight="700">A THANK-YOU FOR YOUR IMPACT</text>
+</svg>
