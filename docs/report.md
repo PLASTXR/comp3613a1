@@ -34,11 +34,13 @@ erDiagram
   Student ||--o{ StudentVolunteerApplication : submits
   Student ||--o{ StudentVolunteerRecord : participates_in
   Student ||--o{ HoursLog : logs
+  Student ||--o{ Redemption : makes
 
   VolunteerOrganization ||--o{ VolunteerProject : offers
   VolunteerProject ||--o{ StudentVolunteerApplication : receives
   VolunteerProject ||--o{ StudentVolunteerRecord : tracks
   StudentVolunteerRecord ||--o{ HoursLog : contains
+  RewardListing ||--o{ Redemption : is_redeemed_in
 
   CampusVolunteerismCentreAdmin {
     int admin_id PK
@@ -57,6 +59,7 @@ erDiagram
     string contact_phone
     string first_name
     string last_name
+    string profile_picture_image
     int credits
     string volunteer_projects
     string active_projects
@@ -80,15 +83,42 @@ erDiagram
   VolunteerProject {
     int volunteer_project_id PK
     int volunteer_organization_id FK
-    string category
+    Category primary_category
+    Category secondary_category
     int current_volunteers
     int max_volunteers
     string application_requirements
+    CommitmentType commitment_type
+    int estimated_hours_per_session
+    Availability availability
+    string project_cover_image
     string project_name
     string start_date
     string end_date
     string description
     string location
+  }
+
+  RewardListing {
+    int reward_id PK
+    string name
+    string description
+    Category primary_category
+    Category secondary_category
+    int points_cost
+    int quantity_available
+    string reward_image_url
+    string updated_date
+  }
+
+  Redemption {
+    int redemption_id PK
+    int student_id FK
+    int reward_listing_id FK
+    int points_spent
+    int quantity
+    string status
+    string redeemed_date
   }
 
   StudentVolunteerApplication {
@@ -132,17 +162,53 @@ erDiagram
 
 Assumptions: Student and VolunteerProject are linked through StudentVolunteerApplication and StudentVolunteerRecord, with a separate HoursLog linked to each volunteer record. The admin is an independent actor that reviews applications and verifies logs.
 
+`VolunteerProject.commitment_type` is an enum with values `one_time`, `weekly`, and `long_term`; `estimated_hours_per_session` is an integer.
+`VolunteerProject.availability` is an enum with values `weekdays` and `weekends`.
+`VolunteerProject.project_cover_image` stores the cover image reference (such as a URL or file path).
+`Student.profile_picture_image` stores the profile image reference (such as a URL or file path).
+`Student` and `RewardListing` have a many-to-many relationship through `Redemption`, which records each redemption's points, quantity, status, and date. `Redemption.reward_listing_id` references `RewardListing.reward_id`. `Category` is a separate enum data type used by all category attributes; its values are not specified yet.
+
 ## Wireframes
 
-Embed each student-crafted wireframe here (Phase 4). Paths are relative to this file:
+### Log Volunteer Hours (Student)
 
-```markdown
-### Explore / Search Publications
+![Log Volunteer Hours (Student)](wireframes/Wireframe.jpg)
 
-![Explore / Search Publications](wireframes/explore.png)
-```
+### Post Volunteer Opportunity (Volunteer Organization)
 
-`python manage.py report` also embeds any PNG/JPG still missing from `docs/wireframes/`.
+![Post Volunteer Opportunity (Volunteer Organization)](wireframes/Wireframe.jpg)
+
+### Redeem Hour Credits for Prizes (Student)
+
+![Redeem Hour Credits for Prizes (Student)](wireframes/Wireframe.jpg)
+
+<!-- student-build:wireframe-coverage
+use_case: Log Volunteer Hours (Student)
+image: docs/wireframes/Wireframe.jpg
+covered: yes
+-->
+
+<!-- student-build:wireframe-coverage
+use_case: Post Volunteer Opportunity (Volunteer Organization)
+image: docs/wireframes/Wireframe.jpg
+covered: yes
+-->
+
+<!-- student-build:wireframe-coverage
+use_case: Redeem Hour Credits for Prizes (Student)
+image: docs/wireframes/Wireframe.jpg
+covered: yes
+-->
+
+### Accepted model revisions
+- Student.credits — seen on Wireframe.jpg
+- HoursLog.status — seen on Wireframe.jpg
+- StudentVolunteerRecord.verified_hours — seen on Wireframe.jpg
+- VolunteerProject.max_volunteers — seen on Wireframe.jpg
+- RewardListing.points_cost — seen on Wireframe.jpg
+- Redemption.status — seen on Wireframe.jpg
+
+Accepted workflow completion: the student logs hours, the entry sits in a pending/admin-verification state, and only then does the approved total update the student’s credits.
 
 ## Theming
 
