@@ -132,6 +132,10 @@ body {
   margin: 0 auto 1.75rem;
 }
 
+.about-lead {
+  color: var(--brand-accent);
+}
+
 .btn-mint {
   background: var(--brand-mint);
   border-color: var(--brand-mint);
