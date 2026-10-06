@@ -1,7 +1,7 @@
 from datetime import date
 
 from fastapi import File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 from starlette.responses import RedirectResponse
 
 from app.dependencies.auth import OrganizationDep
@@ -15,7 +15,11 @@ from app.services.volunteer_project import (
     VolunteerProjectService,
 )
 from app.utilities.flash import flash
-from app.utilities.coverimage import delete_cover_image, save_project_cover_image
+from app.utilities.coverimage import (
+    delete_cover_image,
+    get_cover_image,
+    save_project_cover_image,
+)
 from . import router, templates
 
 
@@ -219,7 +223,7 @@ async def delete_organization_listing(
         flash(request, str(exc), "danger")
     else:
         if cover_image_path is not None:
-            delete_cover_image(cover_image_path)
+            delete_cover_image(cover_image_path, db)
         flash(request, "Listing deleted.", "success")
     return RedirectResponse(
         url=request.url_for(return_route),
@@ -286,7 +290,7 @@ async def create_organization_listing(
     cover_image_path = None
     if project_cover_image and project_cover_image.filename:
         try:
-            cover_image_path = await save_project_cover_image(project_cover_image)
+            cover_image_path = await save_project_cover_image(project_cover_image, db)
         except ValueError as exc:
             flash(request, str(exc), "danger")
             return templates.TemplateResponse(
@@ -316,7 +320,7 @@ async def create_organization_listing(
         )
     except EndDateBeforeStartError as exc:
         if cover_image_path is not None:
-            delete_cover_image(cover_image_path)
+            delete_cover_image(cover_image_path, db)
         form_data["end_date"] = ""
         flash(request, str(exc), "danger")
         return templates.TemplateResponse(
@@ -327,7 +331,7 @@ async def create_organization_listing(
         )
     except ValueError as exc:
         if cover_image_path is not None:
-            delete_cover_image(cover_image_path)
+            delete_cover_image(cover_image_path, db)
         flash(request, str(exc), "danger")
         return templates.TemplateResponse(
             request=request,
@@ -341,4 +345,15 @@ async def create_organization_listing(
             submitted="1"
         ),
         status_code=303,
+    )
+
+@router.get("/project-covers/{filename}", name="project_cover_image")
+def project_cover_image_file(filename: str, db: SessionDep):
+    cover = get_cover_image(filename, db)
+    if cover is None:
+        raise HTTPException(status_code=404, detail="Cover image not found")
+    return Response(
+        content=cover.data,
+        media_type=cover.content_type,
+        headers={"Cache-Control": "public, max-age=86400"},
     )

@@ -10,7 +10,6 @@ from starlette.responses import RedirectResponse
 
 from app.config import get_settings
 from app.routers import api_router, router, static_files, templates
-from app.utilities.coverimage import COVER_IMAGE_DIRECTORY
 
 logger = logging.getLogger(__name__)
 
@@ -34,12 +33,6 @@ app = FastAPI(
 app.include_router(router)
 app.include_router(api_router)
 app.mount("/static", static_files, name="static")
-COVER_IMAGE_DIRECTORY.mkdir(parents=True, exist_ok=True)
-app.mount(
-    "/project-covers",
-    StaticFiles(directory=COVER_IMAGE_DIRECTORY),
-    name="project_covers",
-)
 
 
 @app.middleware("http")

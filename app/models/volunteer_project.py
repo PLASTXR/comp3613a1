@@ -2,7 +2,7 @@ from datetime import date
 from datetime import datetime, timezone
 from enum import Enum
 
-from sqlalchemy import DateTime, String
+from sqlalchemy import DateTime, LargeBinary, String
 from sqlmodel import Field, SQLModel
 
 
@@ -57,3 +57,11 @@ class VolunteerProject(SQLModel, table=True):
         default_factory=lambda: datetime.now(timezone.utc),
         sa_type=DateTime(timezone=True),
     )
+
+
+class ProjectCoverImage(SQLModel, table=True):
+    __tablename__ = "project_cover_image"
+
+    filename: str = Field(primary_key=True)
+    content_type: str
+    data: bytes = Field(sa_type=LargeBinary)

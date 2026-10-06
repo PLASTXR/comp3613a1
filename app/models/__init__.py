@@ -13,6 +13,7 @@ from app.models.student_application import (
 from app.models.student import ParticipationStatus, Student, StudentVolunteerRecord
 from app.models.user import User
 from app.models.volunteer_project import (
+    ProjectCoverImage,
     VolunteerOrganization,
     VolunteerProject,
     VolunteerProjectStatus,
@@ -23,6 +24,7 @@ __all__ = [
     "HoursLog",
     "HoursLogStatus",
     "ParticipationStatus",
+    "ProjectCoverImage",
     "Redemption",
     "RewardListing",
     "StudentVolunteerApplication",

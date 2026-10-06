@@ -2,13 +2,25 @@ from pathlib import Path
 from uuid import uuid4
 
 from fastapi import UploadFile
+from sqlmodel import Session
 
-COVER_IMAGE_DIRECTORY = Path("uploads") / "project_covers"
+from app.models.volunteer_project import ProjectCoverImage
+
 MAX_COVER_IMAGE_BYTES = 5 * 1024 * 1024
 ALLOWED_COVER_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
+CONTENT_TYPES = {
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".png": "image/png",
+    ".webp": "image/webp",
+}
+URL_PREFIX = "/project-covers/"
 
 
-async def save_project_cover_image(project_cover_image: UploadFile | None) -> str | None:
+async def save_project_cover_image(
+    project_cover_image: UploadFile | None, db: Session
+) -> str | None:
+    """Store the image in the database so it survives redeploys."""
     if project_cover_image is None:
         return None
 
@@ -21,18 +33,28 @@ async def save_project_cover_image(project_cover_image: UploadFile | None) -> st
         if len(contents) > MAX_COVER_IMAGE_BYTES:
             raise ValueError("Project cover image files must be 5 MB or smaller.")
 
-        COVER_IMAGE_DIRECTORY.mkdir(parents=True, exist_ok=True)
-        stored_path = COVER_IMAGE_DIRECTORY / f"{uuid4().hex}{extension}"
-        stored_path.write_bytes(contents)
-        return f"/project-covers/{stored_path.name}"
+        filename = f"{uuid4().hex}{extension}"
+        db.add(
+            ProjectCoverImage(
+                filename=filename,
+                content_type=CONTENT_TYPES[extension],
+                data=contents,
+            )
+        )
+        db.commit()
+        return f"{URL_PREFIX}{filename}"
     finally:
         await project_cover_image.close()
-        
-def delete_cover_image(path: str) -> None:
-    storage_root = COVER_IMAGE_DIRECTORY.resolve()
-    if not path.startswith("/project-covers/"):
+
+
+def get_cover_image(filename: str, db: Session) -> ProjectCoverImage | None:
+    return db.get(ProjectCoverImage, filename)
+
+
+def delete_cover_image(path: str, db: Session) -> None:
+    if not path.startswith(URL_PREFIX):
         raise ValueError("The cover image path is outside the configured storage directory.")
-    stored_path = (storage_root / Path(path).name).resolve()
-    if storage_root not in stored_path.parents:
-        raise ValueError("The cover image path is outside the configured storage directory.")
-    stored_path.unlink(missing_ok=True)
+    stored = db.get(ProjectCoverImage, Path(path).name)
+    if stored is not None:
+        db.delete(stored)
+        db.commit()
