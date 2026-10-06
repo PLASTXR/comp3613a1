@@ -294,6 +294,7 @@ Theming is applied. Log Volunteer Hours is implemented. The student verified a s
 - New logs start in `pending`; credit totals remain unchanged until verification.
 - The Student profile shares the authenticated `User.id`; regular-user creation initializes that profile.
 - Evidence is optional; the current implementation accepts JPG/PNG/PDF up to 5 MB and stores files outside the public static directory.
+- Fixed optional evidence submission when browsers send an empty upload part: a missing/blank filename is now treated as no attachment rather than rejected for an unsupported extension.
 - The `ParticipationStatus` enum and `StudentVolunteerRecord.organization_name` were added from the student's model edits. Date fields used for validation are represented as dates.
 - Based on the student's Phase 5 steering, the authenticated shell uses a horizontal top navigation (no left sidebar), with Projects, Rewards, My Profile, and Log out. The Projects menu links to Active Projects; the student page itself continues to list only active projects.
 - Based on the student's Phase 5 steering, the home page has a centered welcome banner, a Get Started link to `/projects`, and a scrollable newest-approved-projects section. The organization logo/name is in the horizontal navigation.

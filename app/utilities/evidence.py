@@ -12,6 +12,9 @@ async def save_hours_evidence(evidence: UploadFile | None) -> str | None:
         return None
 
     try:
+        if not (evidence.filename or "").strip():
+            return None
+
         extension = Path(evidence.filename or "").suffix.lower()
         if extension not in ALLOWED_EVIDENCE_EXTENSIONS:
             raise ValueError("Evidence must be a JPG, PNG, or PDF file.")
