@@ -5,6 +5,7 @@ from fastapi import UploadFile
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.models.student import Student
+from app.models.user import User
 from app.repositories.student_profile import StudentProfileRepository
 from app.utilities.profilepicture import (
     delete_student_profile_picture,
@@ -21,6 +22,9 @@ class StudentProfileService:
 
     def get_student(self, student_id: int) -> Student | None:
         return self.repository.get_student(student_id)
+
+    def get_top_students_by_verified_hours(self) -> list[tuple[Student, User]]:
+        return self.repository.get_top_students_by_verified_hours()
 
     def organization_can_view_picture(
         self,

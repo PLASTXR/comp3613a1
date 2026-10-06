@@ -55,6 +55,42 @@
       {% endif %}
     </div>
   </section>
+
+  <section class="py-4 pb-5" aria-labelledby="top-volunteers-heading">
+    <div class="container">
+      <div class="card project-card mx-auto" style="max-width: 760px;">
+        <div class="card-body p-4 p-md-5">
+          <div class="text-center mb-4">
+            <p class="landing-kicker text-uppercase mb-1">Community recognition</p>
+            <h2 class="h3 mb-0" id="top-volunteers-heading">Top Volunteers</h2>
+            <p class="text-secondary mb-0 mt-2">
+              Ranked by verified volunteer hours.
+            </p>
+          </div>
+          {% if leaderboard %}
+          <ol class="leaderboard-list list-unstyled mb-0">
+            {% for student, account in leaderboard %}
+            <li class="leaderboard-entry">
+              <span class="leaderboard-rank" aria-label="Rank {{ loop.index }}">{{ loop.index }}</span>
+              <span class="leaderboard-name">
+                {{ (student.first_name ~ " " ~ student.last_name).strip() or account.username }}
+              </span>
+              <strong class="leaderboard-hours">
+                {{ student.total_verified_hours }}
+                <span class="fw-normal text-secondary">hrs</span>
+              </strong>
+            </li>
+            {% endfor %}
+          </ol>
+          {% else %}
+          <p class="empty-state text-center p-4 mb-0">
+            Verified volunteer hours will appear here once approved.
+          </p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
 </main>
 <footer class="site-footer py-4">
   <div class="container text-center small">StudentCare Volunteer Community</div>

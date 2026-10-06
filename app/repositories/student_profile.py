@@ -1,9 +1,10 @@
 import logging
 
-from sqlmodel import Session, select
+from sqlmodel import Session, select, col
 
 from app.models.student import Student
 from app.models.student_application import StudentVolunteerApplication
+from app.models.user import User
 from app.models.volunteer_project import VolunteerOrganization, VolunteerProject
 
 logger = logging.getLogger(__name__)
@@ -15,6 +16,20 @@ class StudentProfileRepository:
 
     def get_student(self, student_id: int) -> Student | None:
         return self.db.get(Student, student_id)
+
+    def get_top_students_by_verified_hours(self) -> list[tuple[Student, User]]:
+        statement = (
+            select(Student, User)
+            .select_from(Student)
+            .join_from(Student, User)
+            .where(col(Student.total_verified_hours) > 0)
+            .order_by(
+                col(Student.total_verified_hours).desc(),
+                col(Student.student_id),
+            )
+            .limit(10)
+        )
+        return list(self.db.exec(statement).all())
 
     def organization_has_student_applicant(
         self,

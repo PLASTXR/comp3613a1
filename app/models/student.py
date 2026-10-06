@@ -24,7 +24,9 @@ class Student(SQLModel, table=True):
     active_projects: str = ""
     campus_ID: str = ""
     degree: str = ""
-    total_verified_hours: int = 0
+    # STUDENT SNIPPET BEGIN: complete the non-negative leaderboard-hours field.
+    total_verified_hours: int = Field(default=0, ge=0)
+    # STUDENT SNIPPET END
     total_unverified_hours: int = 0
 
 
