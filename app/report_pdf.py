@@ -228,11 +228,15 @@ def export_report(
             "(runs student-judge -> docs/judge.md), then re-run this command."
         )
     app_url, logins, missing = _marker_access(markdown)
+    video_url = _first_url(_section(markdown, "youtube url", "youtube"))
+    repo_url = _first_url(_section(markdown, "github repository", "github url", "github"))
     dest.parent.mkdir(parents=True, exist_ok=True)
 
     pdf = _new_pdf(bool(missing))
     with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
-        cover = _cover_html(clean_name, clean_id, app_url, logins, integrity, missing)
+        cover = _cover_html(
+            clean_name, clean_id, app_url, logins, integrity, missing, video_url, repo_url
+        )
         body = _markdown_to_html(markdown, src.parent, Path(tmp))
         appendix = _markdown_to_html(
             appendix_markdown(transcripts),
@@ -584,6 +588,8 @@ def _cover_html(
     logins: str,
     integrity: IntegrityResult,
     missing: list[str],
+    video_url: str = "",
+    repo_url: str = "",
 ) -> str:
     login_html = " · ".join(
         html_lib.escape(line.strip()) for line in logins.splitlines() if line.strip()
@@ -597,6 +603,8 @@ def _cover_html(
         ("Student ID", html_lib.escape(student_id), False),
         ("Deployed app", html_lib.escape(app_url), False),
         ("Logins", login_html, False),
+        ("YouTube video", html_lib.escape(video_url or "Not yet"), False),
+        ("GitHub repository", html_lib.escape(repo_url or "Not yet"), False),
         ("Skill integrity", integrity_value, not integrity.ok),
     ]
     cells = []
@@ -647,6 +655,11 @@ def _section(markdown: str, *titles: str) -> str:
         if capture:
             lines.append(line)
     return "\n".join(lines).strip()
+
+
+def _first_url(text: str) -> str:
+    match = re.search(r"https?://[^\s)]+", text)
+    return match.group(0) if match else ""
 
 
 def _marker_access(markdown: str) -> tuple[str, str, list[str]]:

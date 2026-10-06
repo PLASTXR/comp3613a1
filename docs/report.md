@@ -1,4 +1,4 @@
-<!-- student-build:skill-integrity
+﻿<!-- student-build:skill-integrity
 status: pass
 root: e84cd692d0b85eefe546385661958c27d07e8be6c5176a82012f68ccff5c8beb
 expected_root: e84cd692d0b85eefe546385661958c27d07e8be6c5176a82012f68ccff5c8beb
@@ -6,10 +6,6 @@ mismatches: none
 -->
 
 # COMP 3613 Assignment 1
-
-Draft this file with the Guide. **Update it after every phase milestone** before you pause. The use-case diagram is a UML PNG at `docs/diagrams/use-case.png`, linked from this file as `diagrams/use-case.png` (path relative to `docs/report.md`). The model diagram is Mermaid. **Embed wireframe images** as `wireframes/<file>` (files live in `docs/wireframes/`).
-
-Do not put your student ID in this file if you will commit it. The PDF cover adds your name and ID at export time.
 
 ## Assigned project
 Student Awards
@@ -195,25 +191,17 @@ Phase 5 identity mapping: the FastStarter `User` account and `Student` profile s
 
 ## Wireframes
 
-### Log Volunteer Hours (Student)
+### Log Volunteer Hours, Post Volunteer Opportunity, Redeem Hour Credits (Student / Volunteer Organization)
 
-![Log Volunteer Hours (Student)](wireframes/Wireframe.jpg)
+![Core workflows wireframe](wireframes/Wireframe.jpg)
 
-### Post Volunteer Opportunity (Volunteer Organization)
+### Student applies to join a project
 
-![Post Volunteer Opportunity (Volunteer Organization)](wireframes/Wireframe.jpg)
+![Student applies to join a project](wireframes/student-apply-to-project.jpg)
 
-### Redeem Hour Credits for Prizes (Student)
+### Admin dashboard
 
-![Redeem Hour Credits for Prizes (Student)](wireframes/Wireframe.jpg)
-
-### Student applies to join a project (Phase 5 request)
-
-![Student applies to join a project](<wireframes/Student apply to project/Student apply to project wireframe.jpg>)
-
-### Admin dashboard (Phase 5 request)
-
-![Admin dashboard](<wireframes/admin view/admin view.jpg>)
+![Admin dashboard](wireframes/admin-view.jpg)
 
 ### Top Volunteers leaderboard (homepage)
 
@@ -245,13 +233,13 @@ covered: yes
 
 <!-- student-build:wireframe-coverage
 use_case: Student applies to join a project (Phase 5 request)
-image: docs/wireframes/Student apply to project/Student apply to project wireframe.jpg
+image: docs/wireframes/student-apply-to-project.jpg
 covered: yes
 -->
 
 <!-- student-build:wireframe-coverage
 use_case: Review project listings and student applications and hours; view resignations (Admin)
-image: docs/wireframes/admin view/admin view.jpg
+image: docs/wireframes/admin-view.jpg
 covered: yes
 -->
 
@@ -267,6 +255,10 @@ covered: yes
 - Redemption.status — seen on Wireframe.jpg
 
 Accepted workflow completion: the student logs hours, the entry sits in a pending/admin-verification state, and only then does the approved total update the student’s credits.
+
+### Leaderboard
+
+![Leaderboard](wireframes/Leaderboard.webp)
 
 ### Wireframe
 
@@ -318,7 +310,7 @@ Polish requested: always show a project-cover area when a project has no cover i
 
 The student requested homepage “View Project” links to open project details directly instead of routing through search. Student verification confirmed the link opens the corresponding project detail page.
 
-Admin dashboard is the current Phase 5 workflow, guided by `wireframes/admin view/admin view.jpg`. It includes pending project listings, pending student applications, pending hour logs, and recent resignations. The student chose detail-page review for hour logs, with an optional denial reason, and 25 credits per approved hour. Accepting a student application creates an active participation and increments the project's volunteer count.
+Admin dashboard is the current Phase 5 workflow, guided by `wireframes/admin-view.jpg`. It includes pending project listings, pending student applications, pending hour logs, and recent resignations. The student chose detail-page review for hour logs, with an optional denial reason, and 25 credits per approved hour. Accepting a student application creates an active participation and increments the project's volunteer count.
 
 The dashboard, pending queues, listing/application/hour detail pages, review actions, private evidence download, and resignation history are implemented through routes → services → repositories. Reviews reject repeat decisions; application acceptance checks listing approval and capacity, while hour review updates pending/verified totals and credits in one transaction. The seed command provisions the admin profile needed to record reviewers. Local runs exposed ambiguous inferred joins in the pending-application and pending-hours queries; joins are now anchored to their source models, with the hour-log/participation link explicitly specified. Diagnostics for the changed Python files report no errors, and `git diff --check` passes. No automated test files were found.
 
@@ -834,6 +826,12 @@ Every account a marker needs, including extra users you added. Starter accounts:
 - learningnetwork / orgpass — volunteer organization
 
 ## YouTube URL
+
+https://youtu.be/HR0sgIlE-yo
+
+## GitHub repository
+
+https://github.com/PLASTXR/comp3613a1
 
 ## Session transcripts
 
