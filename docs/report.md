@@ -770,8 +770,14 @@ https://
 
 Every account a marker needs, including extra users you added. Starter accounts:
 
-- bob / bobpass — regular user
+- bob / bobpass — student (`regular_user`)
+- applicant1 / applicantpass — student (`regular_user`)
+- applicant2 / applicantpass — student (`regular_user`)
+- applicant3 / applicantpass — student (`regular_user`)
 - admin / adminpass — admin
+- greenearth / orgpass — volunteer organization
+- campuspantry / orgpass — volunteer organization
+- learningnetwork / orgpass — volunteer organization
 
 ## YouTube URL
 
