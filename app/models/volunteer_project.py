@@ -10,7 +10,11 @@ class VolunteerOrganization(SQLModel, table=True):
     __tablename__ = "volunteer_organization"
 
     volunteer_organization_id: int | None = Field(default=None, primary_key=True)
-    password: str = ""
+    user_id: int | None = Field(
+        default=None,
+        foreign_key="user.id",
+        unique=True,
+    )
     contact_email: str = ""
     contact_phone: str = ""
     organization_name: str = ""
@@ -40,6 +44,7 @@ class VolunteerProject(SQLModel, table=True):
     availability: str = ""
     project_cover_image: str | None = None
     project_name: str
+    short_listing_summary: str = Field(default="", max_length=200)
     start_date: date
     end_date: date | None = None
     description: str = ""

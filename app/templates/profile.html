@@ -5,6 +5,34 @@
 <section class="profile-panel card p-4 p-md-5">
   <p class="landing-kicker text-uppercase mb-1">Account</p>
   <h1 class="h2 mb-4">My Profile</h1>
+  {% if user.role == "regular_user" %}
+  <div class="d-flex flex-column flex-sm-row align-items-sm-start gap-4 mb-4">
+    {% if student and student.profile_picture_image %}
+    <img class="student-profile-avatar"
+         src="{{ url_for('student_profile_picture', student_id=student.student_id) }}"
+         alt="Student profile picture">
+    {% else %}
+    <div class="student-profile-avatar student-profile-avatar--empty" aria-hidden="true">
+      {{ user.username[:1]|upper }}
+    </div>
+    {% endif %}
+    <div class="flex-grow-1">
+      <h2 class="h5">Profile picture</h2>
+      {% if student %}
+      <form method="post" enctype="multipart/form-data"
+            action="{{ url_for('update_student_profile_picture') }}">
+        <label class="form-label" for="profilePicture">Choose an image</label>
+        <input class="form-control mb-2" id="profilePicture" name="image" type="file"
+               accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" required>
+        <p class="form-text">JPG, PNG, or WEBP; 5 MB maximum.</p>
+        <button class="btn btn-primary" type="submit">Upload picture</button>
+      </form>
+      {% else %}
+      <p class="text-secondary mb-0">A student profile is not available for this account.</p>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
   <dl class="row mb-0">
     <dt class="col-sm-3">Username</dt>
     <dd class="col-sm-9">{{ user.username }}</dd>

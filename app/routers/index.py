@@ -3,7 +3,9 @@ from fastapi.responses import HTMLResponse
 
 from app.dependencies.auth import IsUserLoggedIn, get_current_user
 from app.dependencies.session import SessionDep
+from app.repositories.reward import RewardRepository
 from app.repositories.volunteer_project import VolunteerProjectRepository
+from app.services.reward import RewardService
 from app.services.volunteer_project import VolunteerProjectService
 from . import router, templates
 
@@ -20,6 +22,8 @@ async def index_view(
 
     project_service = VolunteerProjectService(VolunteerProjectRepository(db))
     recent_projects = project_service.get_recent_public_projects()
+    community_stats = project_service.get_community_stats()
+    reward_count = RewardService(RewardRepository(db)).count_rewards()
     return templates.TemplateResponse(
         request=request,
         name="landing.html",
@@ -27,5 +31,29 @@ async def index_view(
             "user_logged_in": user_logged_in,
             "user": user,
             "recent_projects": recent_projects,
+            "community_stats": {
+                **community_stats,
+                "reward_count": reward_count,
+            },
+        },
+    )
+
+
+@router.get("/about", response_class=HTMLResponse, name="about_view")
+async def about_view(
+    request: Request,
+    user_logged_in: IsUserLoggedIn,
+    db: SessionDep,
+):
+    user = None
+    if user_logged_in:
+        user = await get_current_user(request, db)
+
+    return templates.TemplateResponse(
+        request=request,
+        name="about.html",
+        context={
+            "user_logged_in": user_logged_in,
+            "user": user,
         },
     )

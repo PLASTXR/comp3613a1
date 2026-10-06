@@ -1,0 +1,30 @@
+{% extends "authenticated-base.html" %}
+{% block page_title %}All Organization Listings | StudentCare{% endblock %}
+
+{% block subpage_content %}
+<main>
+  <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+    <div>
+      <p class="text-uppercase small fw-semibold mb-1 text-secondary">Volunteer organization</p>
+      <h1 class="h2 mb-1">All Listings</h1>
+      <p class="text-secondary mb-0">{{ listings|length }} opportunities posted by your organization.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-secondary" href="{{ url_for('organization_listings_view') }}">Dashboard</a>
+      <a class="btn btn-primary" href="{{ url_for('organization_listing_form') }}">Post New Listing</a>
+    </div>
+  </div>
+  {% if listings %}
+  <section class="row g-3" aria-label="All organization listings">
+    {% for listing, listing_status, applicant_count, has_associated_records in listings %}
+    {% include "organization_listing_card.html" %}
+    {% endfor %}
+  </section>
+  {% else %}
+  <section class="empty-state text-center p-5">
+    <h2 class="h5">No listings yet</h2>
+    <a class="btn btn-primary" href="{{ url_for('organization_listing_form') }}">Post New Listing</a>
+  </section>
+  {% endif %}
+</main>
+{% endblock %}

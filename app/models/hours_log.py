@@ -1,6 +1,14 @@
+from enum import Enum
 from datetime import date
 
+from sqlalchemy import String
 from sqlmodel import Field, SQLModel
+
+
+class HoursLogStatus(str, Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    DENIED = "denied"
 
 
 class HoursLog(SQLModel, table=True):
@@ -11,7 +19,10 @@ class HoursLog(SQLModel, table=True):
     student_id: int = Field(foreign_key="student.student_id")
     log_date: date = Field(default_factory=date.today)
     hours: int = Field(gt=0)
-    status: str = Field(default="pending")
+    status: HoursLogStatus = Field(
+        default=HoursLogStatus.PENDING,
+        sa_type=String(16),
+    )
     description: str
     evidence_attachment: str | None = None
     volunteer_date: date

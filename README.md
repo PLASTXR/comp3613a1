@@ -84,7 +84,7 @@ Defaults use a local SQLite file (`database.db`). Change `SECRET_KEY` before any
 
 ### 4. Initialise the database (Python CLI)
 
-Creates tables (drops existing by default) **and seeds demo users, 3 volunteer organizations, 10 approved volunteer projects, and sample rewards**:
+Creates tables (drops existing by default) **and seeds demo users, 3 volunteer organizations, 10 approved volunteer projects, sample student applications, and sample rewards**:
 
 ```bash
 python manage.py init
@@ -93,9 +93,16 @@ python manage.py init
 | Username | Password    | Role         |
 |----------|-------------|--------------|
 | `bob`    | `bobpass`   | regular_user |
+| `applicant1` | `applicantpass` | regular_user |
+| `applicant2` | `applicantpass` | regular_user |
+| `applicant3` | `applicantpass` | regular_user |
 | `admin`  | `adminpass` | admin        |
+| `greenearth` | `orgpass` | volunteer organization |
+| `campuspantry` | `orgpass` | volunteer organization |
+| `learningnetwork` | `orgpass` | volunteer organization |
 
-The volunteer organizations and project listings are sample data. Projects are divided among the three organizations and appear in public search/recent listings. `Digital Skills for Seniors` is seeded at full capacity to demonstrate the closed-application state.
+The volunteer organizations and project listings are sample data. Each organization account is linked to its matching profile and can post listings from its dashboard. Projects are divided among the three organizations and appear in public search/recent listings. `Digital Skills for Seniors` is seeded at full capacity to demonstrate the closed-application state. `Community Garden Crew` is seeded with a service window that includes today, and Bob has an active participation record there to test logging volunteer hours.
+The applicant accounts are sample students. The seed adds pending applications from them to two available seeded projects per organization so the organization dashboard, applicant details, and View All Applicants page have data to review. Applications receive recent timestamps, and rerunning the seed skips existing student/project pairs.
 The seed also creates nine reward listings across Clothing, Gift Cards, and Campus Perks. If `bob` has zero credits and no prior redemption, the seed gives the student profile 500 demo credits. Once a redemption is recorded, rerunning the seed does not replenish spent credits.
 
 Flags:
@@ -105,7 +112,7 @@ python manage.py init --no-drop   # create/seed without dropping
 python manage.py init --no-seed   # tables only (skip demo users)
 ```
 
-Seeding is idempotent: existing usernames, organization names, organization/project pairs, and reward names are skipped, while the designated full-capacity demo project is kept at its volunteer limit. Add sample rows in `cmd_seed` in `app/cli.py`. `python manage.py seed` inserts any missing demo accounts, organizations, projects, and rewards without dropping existing data.
+Seeding is idempotent: existing usernames, organization names, organization/project pairs, student/project applications, student/project volunteer records, and reward names are skipped, while the designated full-capacity demo project is kept at its volunteer limit. Add sample rows in `cmd_seed` in `app/cli.py`. `python manage.py seed` inserts any missing demo accounts, organizations, projects, applications, volunteer records, and rewards without dropping existing data.
 
 ```bash
 python manage.py users
@@ -132,8 +139,8 @@ Commands are implemented in `app/cli.py` (stdlib `argparse`) and invoked via `ma
 
 | Command | Purpose |
 |---------|---------|
-| `python manage.py init` | Drop (default), create DB tables, and seed demo users, 3 organizations, 10 projects, and 9 rewards |
-| `python manage.py seed` | Idempotently add any missing demo users, organizations, projects, and rewards (also part of `init`) |
+| `python manage.py init` | Drop (default), create DB tables, and seed demo users, 3 organizations, 10 projects, sample applications, and 9 rewards |
+| `python manage.py seed` | Idempotently add any missing demo users, organizations, projects, applications, and rewards (also part of `init`) |
 | `python manage.py run` | Start Uvicorn (reload unless `ENV=production`) |
 | `python manage.py users` | Print users in the DB |
 | `python manage.py transcripts` | Optional: package agent-written `docs/transcripts/*.md` into INDEX + zip (no IDE scrape) |

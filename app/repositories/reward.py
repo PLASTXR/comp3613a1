@@ -1,6 +1,6 @@
 from datetime import date
 
-from sqlalchemy import or_
+from sqlalchemy import func, or_
 from sqlmodel import Session, select
 
 from app.models.reward import Redemption, RewardListing
@@ -10,6 +10,10 @@ from app.models.student import Student
 class RewardRepository:
     def __init__(self, db: Session):
         self.db = db
+
+    def count_rewards(self) -> int:
+        statement = select(func.count()).select_from(RewardListing)
+        return int(self.db.exec(statement).one())
 
     def list_rewards(
         self,

@@ -11,6 +11,60 @@
     </div>
   </div>
 
+  <section class="row g-3 mb-4" aria-label="Your volunteer statistics">
+    <div class="col-6 col-xl-3">
+      <div class="card project-card h-100"><div class="card-body p-3">
+        <p class="small text-secondary mb-1">Active Projects</p>
+        <p class="h3 fw-semibold mb-0">{{ stats.active_projects }}</p>
+      </div></div>
+    </div>
+    <div class="col-6 col-xl-3">
+      <div class="card project-card h-100"><div class="card-body p-3">
+        <p class="small text-secondary mb-1">Hours Logged</p>
+        <p class="h3 fw-semibold mb-0">{{ stats.total_hours }}</p>
+      </div></div>
+    </div>
+    <div class="col-6 col-xl-3">
+      <div class="card project-card h-100"><div class="card-body p-3">
+        <p class="small text-secondary mb-1">Pending Hours</p>
+        <p class="h3 fw-semibold mb-0">{{ stats.pending_hours }}</p>
+      </div></div>
+    </div>
+    <div class="col-6 col-xl-3">
+      <div class="card project-card h-100"><div class="card-body p-3">
+        <p class="small text-secondary mb-1">Credits</p>
+        <p class="h3 fw-semibold mb-0">{{ stats.credits }}</p>
+      </div></div>
+    </div>
+  </section>
+
+  <form class="project-search-form card p-3 p-md-4 mb-4" method="get"
+        action="{{ url_for('user_home_view') }}">
+    <div class="row g-3 align-items-end">
+      <div class="col-12 col-md-7">
+        <label class="form-label" for="activeProjectQuery">Search active projects</label>
+        <input class="form-control" id="activeProjectQuery" name="query" type="search"
+               value="{{ query }}" placeholder="Project, organization, or location">
+      </div>
+      <div class="col-12 col-md-3">
+        <label class="form-label" for="activeProjectSort">Sort by</label>
+        <select class="form-select" id="activeProjectSort" name="sort_by">
+          <option value="newest" {% if sort_by == "newest" %}selected{% endif %}>Newest</option>
+          <option value="hours" {% if sort_by == "hours" %}selected{% endif %}>Hours</option>
+          <option value="volunteers" {% if sort_by == "volunteers" %}selected{% endif %}>Volunteer count</option>
+        </select>
+      </div>
+      <div class="col-12 col-md-2 d-grid">
+        <button class="btn btn-primary" type="submit">Search</button>
+      </div>
+    </div>
+  </form>
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="h5 mb-0">Your active projects</h2>
+    <span class="small text-secondary">{{ active_records|length }} projects shown</span>
+  </div>
+
   {% if active_records %}
   <div class="row g-3">
     {% for record, project, organization in active_records %}
@@ -38,12 +92,54 @@
             {{ project.start_date.strftime("%b %d, %Y") if project.start_date else "" }}
             {% if project.end_date %}– {{ project.end_date.strftime("%b %d, %Y") }}{% endif %}
           </p>
-          <button class="btn btn-primary" type="button" data-bs-toggle="modal"
-                  data-bs-target="#logHours{{ record.volunteer_record_id }}">
-            Log Hours
-          </button>
+          <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-outline-primary"
+               href="{{ url_for('project_detail_view', volunteer_project_id=project.volunteer_project_id) }}">
+              View Details
+            </a>
+            <button class="btn btn-primary" type="button" data-bs-toggle="modal"
+                    data-bs-target="#logHours{{ record.volunteer_record_id }}">
+              Log Hours
+            </button>
+            <button class="btn btn-outline-danger" type="button" data-bs-toggle="modal"
+                    data-bs-target="#resignProject{{ record.volunteer_record_id }}">
+              Resign
+            </button>
+          </div>
         </div>
       </article>
+    </div>
+
+    <div class="modal fade" id="resignProject{{ record.volunteer_record_id }}" tabindex="-1"
+         aria-labelledby="resignProjectLabel{{ record.volunteer_record_id }}" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <form method="post"
+                action="{{ url_for('resign_from_project', volunteer_record_id=record.volunteer_record_id) }}">
+            <div class="modal-header">
+              <div>
+                <p class="small text-secondary mb-1">Leave this project</p>
+                <h2 class="modal-title fs-5" id="resignProjectLabel{{ record.volunteer_record_id }}">
+                  Confirm resignation
+                </h2>
+              </div>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p>Resign from <strong>{{ project.project_name }}</strong>? This will remove it from your active projects and free a volunteer spot.</p>
+              <label class="form-label" for="resignationReason{{ record.volunteer_record_id }}">
+                Reason (optional)
+              </label>
+              <textarea class="form-control" id="resignationReason{{ record.volunteer_record_id }}"
+                        name="reason" rows="3"></textarea>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Keep Project</button>
+              <button class="btn btn-danger" type="submit">Confirm Resignation</button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
 
     <div class="modal fade" id="logHours{{ record.volunteer_record_id }}" tabindex="-1"
@@ -98,9 +194,13 @@
   {% else %}
   <section class="empty-state text-center p-5">
     <span class="material-symbols-outlined empty-state-icon" aria-hidden="true">volunteer_activism</span>
-    <h2 class="h4 mt-3">No active projects yet</h2>
+    <h2 class="h4 mt-3">{% if query %}No matching projects{% else %}No active projects yet{% endif %}</h2>
     <p class="text-secondary mb-0">
+      {% if query %}
+      Try another project, organization, or location search.
+      {% else %}
       Active volunteer projects will appear here when you have a current participation record.
+      {% endif %}
     </p>
   </section>
   {% endif %}

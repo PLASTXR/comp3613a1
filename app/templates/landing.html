@@ -9,6 +9,12 @@
       <h1 class="brand-wordmark">Campus Volunteerism Centre</h1>
       <p class="landing-lead">Volunteer and make an impact.</p>
       <a class="btn btn-mint btn-lg px-4" href="{{ url_for('project_search_view') }}">Get Started</a>
+      <ul class="landing-stats" aria-label="StudentCare community statistics">
+        <li><strong>{{ community_stats.volunteer_count }}</strong><span>Volunteers</span></li>
+        <li><strong>{{ community_stats.project_count }}</strong><span>Projects</span></li>
+        <li><strong>{{ community_stats.reward_count }}</strong><span>Rewards</span></li>
+        <li><strong>{{ community_stats.organization_count }}</strong><span>Organizations</span></li>
+      </ul>
     </div>
   </section>
 
@@ -33,7 +39,7 @@
               <p class="small text-secondary mb-1">{{ organization.organization_name }}</p>
               <h3 class="h5">{{ project.project_name }}</h3>
               <p class="text-secondary mb-2">{{ project.location }}</p>
-              <p class="mb-3">{{ project.description }}</p>
+              <p class="mb-3">{{ project.short_listing_summary or project.description }}</p>
               <a class="btn btn-outline-primary"
                  href="{{ url_for('project_detail_view', volunteer_project_id=project.volunteer_project_id) }}">View Project</a>
             </div>

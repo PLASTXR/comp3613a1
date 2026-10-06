@@ -7,7 +7,6 @@ EVIDENCE_DIRECTORY = Path("uploads") / "hours"
 MAX_EVIDENCE_BYTES = 5 * 1024 * 1024
 ALLOWED_EVIDENCE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".pdf"}
 
-
 async def save_hours_evidence(evidence: UploadFile | None) -> str | None:
     if evidence is None:
         return None
@@ -35,3 +34,13 @@ def delete_hours_evidence(path: str) -> None:
     if storage_root not in stored_path.parents:
         raise ValueError("The evidence path is outside the configured storage directory.")
     stored_path.unlink(missing_ok=True)
+
+
+def resolve_hours_evidence(path: str) -> Path:
+    stored_path = Path(path).resolve()
+    storage_root = EVIDENCE_DIRECTORY.resolve()
+    if storage_root not in stored_path.parents:
+        raise ValueError("The evidence path is outside the configured storage directory.")
+    if not stored_path.is_file():
+        raise FileNotFoundError("The hour-log evidence file was not found.")
+    return stored_path

@@ -9,6 +9,18 @@ class StudentApplicationService:
     def __init__(self, repository: StudentApplicationRepository):
         self.repository = repository
 
+    def is_accepted_or_active_volunteer(
+        self,
+        student_id: int | None,
+        volunteer_project_id: int,
+    ) -> bool:
+        if student_id is None:
+            return False
+        return self.repository.has_active_or_approved_participation(
+            student_id=student_id,
+            volunteer_project_id=volunteer_project_id,
+        )
+
     def submit_application(
         self,
         student_id: int | None,
@@ -40,6 +52,14 @@ class StudentApplicationService:
 
         if project.current_volunteers >= project.max_volunteers:
             raise ValueError("This project has reached its volunteer limit.")
+
+        if self.is_accepted_or_active_volunteer(
+            student_id=student_id,
+            volunteer_project_id=volunteer_project_id,
+        ):
+            raise ValueError(
+                "You are already accepted to volunteer for this project."
+            )
 
         existing_application = self.repository.find_for_student_and_project(
             student_id=student_id,

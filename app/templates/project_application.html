@@ -27,7 +27,11 @@
         <h2 class="h4 mb-3">Ready to join?</h2>
         <h2 class="h5">{{ project.project_name }}</h2>
 
-        {% if project_is_full %}
+        {% if already_volunteering %}
+        <div class="alert alert-info" role="status">
+          You are already accepted to volunteer for this project, so you cannot submit another application.
+        </div>
+        {% elif project_is_full %}
         <div class="alert alert-secondary" role="status">
           This project has reached its volunteer limit and is no longer accepting applications.
         </div>

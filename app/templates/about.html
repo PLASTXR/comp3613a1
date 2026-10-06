@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}About StudentCare | Volunteer Community{% endblock %}
+
+{% block content %}
+{% include "site-nav.html" %}
+<main class="container py-5">
+  <header class="text-center mx-auto mb-5" style="max-width: 760px;">
+    <p class="landing-kicker text-uppercase mb-1">About us</p>
+    <h1 class="brand-wordmark mb-3">About StudentCare</h1>
+    <p class="landing-lead mb-0">
+      StudentCare connects students, volunteer organizations, and the Campus Volunteerism Centre
+      to make community service easier to discover, manage, and recognize.
+    </p>
+  </header>
+
+  <section class="row g-3" aria-label="Who StudentCare is for">
+    <div class="col-12 col-lg-4">
+      <article class="card project-card h-100">
+        <div class="card-body p-4">
+          <h2 class="h4">For Students</h2>
+          <p class="mb-0">
+            Find volunteer opportunities, apply to projects, keep track of active volunteering,
+            and submit hours for verification. Earn credits for approved hours and redeem them
+            for rewards.
+          </p>
+        </div>
+      </article>
+    </div>
+    <div class="col-12 col-lg-4">
+      <article class="card project-card h-100">
+        <div class="card-body p-4">
+          <h2 class="h4">For Volunteer Organizations</h2>
+          <p class="mb-0">
+            Share opportunities with students by posting project listings, then manage your
+            listings and view applicants. The Campus Volunteerism Centre reviews listings and
+            makes application decisions.
+          </p>
+        </div>
+      </article>
+    </div>
+    <div class="col-12 col-lg-4">
+      <article class="card project-card h-100">
+        <div class="card-body p-4">
+          <h2 class="h4">For the Campus Volunteerism Centre</h2>
+          <p class="mb-0">
+            Review project listings and student applications, verify submitted volunteer hours,
+            and keep track of student participation and resignations.
+          </p>
+        </div>
+      </article>
+    </div>
+  </section>
+</main>
+{% endblock %}

@@ -51,7 +51,9 @@
             <p class="small text-secondary mb-1">{{ organization.organization_name }}</p>
             <h1 class="h2 mb-2">{{ project.project_name }}</h1>
           </div>
-          {% if project.current_volunteers < project.max_volunteers %}
+          {% if project.end_date and project.end_date < today %}
+          <span class="badge rounded-pill text-bg-secondary">Closed</span>
+          {% elif project.current_volunteers < project.max_volunteers %}
           <span class="badge rounded-pill text-bg-success">Open</span>
           {% else %}
           <span class="badge rounded-pill text-bg-secondary">Full</span>
@@ -78,8 +80,13 @@
           <dd class="col-sm-7">{{ project.commitment_type }}</dd>
         </dl>
 
+        {% if already_volunteering %}
+        <div class="alert alert-info mb-4" role="status">
+          You are already accepted to volunteer for this project.
+        </div>
+        {% endif %}
         <div class="d-flex flex-wrap gap-2 mb-4">
-          {% if project.current_volunteers < project.max_volunteers %}
+          {% if not already_volunteering and not project_expired and project.current_volunteers < project.max_volunteers %}
           <a class="btn btn-primary"
              href="{{ url_for('project_application_form', volunteer_project_id=project.volunteer_project_id) }}">
             Apply Now

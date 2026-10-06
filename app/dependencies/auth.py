@@ -53,3 +53,15 @@ async def is_admin_dep(user: AuthDep):
     return user
 
 AdminDep = Annotated[User, Depends(is_admin_dep)]
+
+
+async def is_organization_dep(user: AuthDep):
+    if user.role != "volunteer_organization":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="A volunteer organization account is required.",
+        )
+    return user
+
+
+OrganizationDep = Annotated[User, Depends(is_organization_dep)]

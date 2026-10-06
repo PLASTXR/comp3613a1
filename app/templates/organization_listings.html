@@ -1,0 +1,153 @@
+{% extends "authenticated-base.html" %}
+{% block page_title %}Organization Dashboard | StudentCare{% endblock %}
+
+{% block subpage_content %}
+<main>
+  {% if listing_submitted %}
+  <div class="modal fade" id="listingSubmitted" tabindex="-1"
+       aria-labelledby="listingSubmittedLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="listingSubmittedLabel">Listing Submitted</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Your volunteer opportunity has been sent to Campus Volunteerism Centre for review.
+          You’ll be notified once it’s approved; students can apply after approval.
+        </div>
+        <div class="modal-footer">
+          <a class="btn btn-outline-secondary" href="{{ url_for('organization_listings_view') }}">View My Listings</a>
+          <a class="btn btn-primary" href="{{ url_for('organization_listing_form') }}">Post Another</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    window.addEventListener("DOMContentLoaded", function () {
+      const confirmation = document.getElementById("listingSubmitted");
+      if (confirmation) new bootstrap.Modal(confirmation).show();
+    });
+  </script>
+  {% endif %}
+
+  <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+    <div>
+      <p class="text-uppercase small fw-semibold mb-1 text-secondary">Volunteer organization</p>
+      <h1 class="h2 mb-1">{{ organization.organization_name }}</h1>
+      <p class="text-secondary mb-0">Manage opportunities and share them with student volunteers.</p>
+    </div>
+    <a class="btn btn-primary" href="{{ url_for('organization_listing_form') }}">Post New Listing</a>
+  </div>
+
+  <section class="row g-3 mb-3" aria-label="Organization activity">
+    <div class="col-12 col-sm-6 col-xl-4">
+      <a class="card project-card h-100 text-decoration-none" href="{{ url_for('organization_applications_view') }}">
+        <div class="card-body p-3">
+          <p class="small text-secondary mb-1">New Applicants</p>
+          <p class="h3 fw-semibold mb-0">{{ new_applicant_count }}</p>
+        </div>
+      </a>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-4">
+      <a class="card project-card h-100 text-decoration-none" href="#my-listings">
+        <div class="card-body p-3">
+          <p class="small text-secondary mb-1">Pending Listings</p>
+          <p class="h3 fw-semibold mb-0">{{ pending_count }}</p>
+        </div>
+      </a>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-4">
+      <a class="card project-card h-100 text-decoration-none" href="#my-listings">
+        <div class="card-body p-3">
+          <p class="small text-secondary mb-1">Listings Expiring Soon</p>
+          <p class="h3 fw-semibold mb-0">{{ expiring_count }}</p>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <section class="row g-2 mb-4" aria-label="Lifetime organization statistics">
+    <div class="col-6 col-lg-3">
+      <div class="card project-card h-100"><div class="card-body p-3">
+        <p class="small text-secondary mb-1">Active Volunteers</p>
+        <p class="h4 fw-semibold mb-0">{{ total_volunteers }}</p>
+      </div></div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="card project-card h-100"><div class="card-body p-3">
+        <p class="small text-secondary mb-1">Total Hours</p>
+        <p class="h4 fw-semibold mb-0">{{ total_hours }}</p>
+      </div></div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="card project-card h-100"><div class="card-body p-3">
+        <p class="small text-secondary mb-1">New Listings (30 days)</p>
+        <p class="h4 fw-semibold mb-0">{{ new_listing_count }}</p>
+      </div></div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="card project-card h-100"><div class="card-body p-3">
+        <p class="small text-secondary mb-1">Lifetime Listings</p>
+        <p class="h4 fw-semibold mb-0">{{ lifetime_listing_count }}</p>
+      </div></div>
+    </div>
+  </section>
+
+  <section class="card project-card mb-4" id="recent-applicants">
+    <div class="card-body p-4">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+          <h2 class="h4 mb-1">Recent Applicants</h2>
+          <p class="text-secondary mb-0">The four most recent applications across your listings.</p>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <span class="small text-secondary">{{ new_applicant_count }} awaiting Centre review</span>
+          <a class="btn btn-sm btn-outline-primary" href="{{ url_for('organization_applications_view') }}">
+            View All Applicants
+          </a>
+        </div>
+      </div>
+      {% if recent_applicants %}
+      <div class="row g-3">
+        {% for application, student, applicant_user, project in recent_applicants %}
+        {% include "organization_applicant_card.html" %}
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-secondary mb-0">New student applications will appear here.</p>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="card project-card" id="my-listings">
+    <div class="card-body p-4">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+          <h2 class="h4 mb-1">My Recent Listings</h2>
+          <p class="text-secondary mb-0">Review the status and capacity of your opportunities.</p>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <span class="small text-secondary">Showing {{ listings|length }} of {{ lifetime_listing_count }} listings</span>
+          <a class="btn btn-sm btn-outline-primary" href="{{ url_for('organization_all_listings') }}">
+            View All Listings
+          </a>
+        </div>
+      </div>
+      {% if listings %}
+      <div class="row g-3">
+        {% for listing, listing_status, applicant_count, has_associated_records in listing_items %}
+        {% include "organization_listing_card.html" %}
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state text-center p-5">
+        <h3 class="h5">No listings yet</h3>
+        <p class="text-secondary">Post your first volunteer opportunity to get started.</p>
+        <a class="btn btn-primary" href="{{ url_for('organization_listing_form') }}">Post New Listing</a>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+</main>
+{% endblock %}

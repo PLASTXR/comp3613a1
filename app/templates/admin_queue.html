@@ -1,0 +1,86 @@
+{% extends "authenticated-base.html" %}
+{% block title %}{{ title }} | StudentCare{% endblock %}
+
+{% block subpage_content %}
+<main class="container-fluid px-0">
+  <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+    <div>
+      <p class="text-uppercase small fw-semibold mb-1 text-secondary">Admin review</p>
+      <h1 class="h2 mb-1">{{ title }}</h1>
+      <p class="text-secondary mb-0">{{ records|length }} records shown</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{{ url_for('admin_home_view') }}">Back to Dashboard</a>
+  </div>
+
+  {% if records %}
+  <div class="row g-3">
+    {% if queue == "listings" %}
+      {% for project, organization in records %}
+      <div class="col-12 col-md-6">
+        <article class="card project-card h-100"><div class="card-body p-4">
+          <p class="small text-secondary mb-1">{{ organization.organization_name }}</p>
+          <h2 class="h4">{{ project.project_name }}</h2>
+          <p class="text-secondary">{{ project.location }} · {{ project.start_date.strftime("%b %d, %Y") }}</p>
+          <a class="btn btn-primary btn-sm" href="{{ url_for('admin_listing_review_view', project_id=project.volunteer_project_id) }}">Review Listing</a>
+        </div></article>
+      </div>
+      {% endfor %}
+    {% elif queue == "applications" %}
+      {% for application, student, student_user, project in records %}
+      <div class="col-12 col-xl-6">
+        <article class="card project-card h-100"><div class="card-body p-4">
+          <div class="d-flex align-items-center gap-2 mb-1">
+            {% if student.profile_picture_image %}
+            <img class="student-list-avatar"
+                 src="{{ url_for('student_profile_picture', student_id=student.student_id) }}"
+                 alt="Student profile picture">
+            {% endif %}
+            <p class="small text-secondary mb-0">{{ (student.first_name ~ " " ~ student.last_name).strip() or student_user.username }}</p>
+          </div>
+          <h2 class="h4">{{ project.project_name }}</h2>
+          <p>{{ application.student_motivation }}</p>
+          <div class="d-flex flex-wrap gap-2">
+            <form method="post" action="{{ url_for('admin_deny_application', application_id=application.application_id) }}">
+              <button class="btn btn-outline-danger btn-sm" type="submit">Deny</button>
+            </form>
+            <form method="post" action="{{ url_for('admin_accept_application', application_id=application.application_id) }}">
+              <button class="btn btn-primary btn-sm" type="submit">Accept</button>
+            </form>
+            <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('admin_application_review_view', application_id=application.application_id) }}">View</a>
+          </div>
+        </div></article>
+      </div>
+      {% endfor %}
+    {% elif queue == "hours" %}
+      {% for hours_log, student, student_user, project in records %}
+      <div class="col-12 col-xl-6">
+        <article class="card project-card h-100"><div class="card-body p-4">
+          <p class="small text-secondary mb-1">{{ (student.first_name ~ " " ~ student.last_name).strip() or student_user.username }}</p>
+          <h2 class="h4">{{ project.project_name }}</h2>
+          <p>{{ hours_log.hours }} hours · {{ hours_log.volunteer_date.strftime("%b %d, %Y") }}</p>
+          <p>{{ hours_log.description }}</p>
+          <a class="btn btn-primary btn-sm" href="{{ url_for('admin_hour_review_view', log_id=hours_log.log_id) }}">Review Details</a>
+        </div></article>
+      </div>
+      {% endfor %}
+    {% else %}
+      {% for record, student, student_user, project in records %}
+      <div class="col-12">
+        <article class="card project-card"><div class="card-body p-4">
+          <p class="small text-secondary mb-1">{{ (student.first_name ~ " " ~ student.last_name).strip() or student_user.username }}</p>
+          <h2 class="h4">{{ project.project_name }}</h2>
+          <p class="small text-secondary">Resigned {{ record.resignation_date.strftime("%b %d, %Y") if record.resignation_date else "date not recorded" }}</p>
+          <p class="mb-0">{{ record.resignation_reason or "No reason provided." }}</p>
+        </div></article>
+      </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+  {% else %}
+  <section class="empty-state text-center p-5">
+    <h2 class="h4">Nothing to review</h2>
+    <p class="text-secondary mb-0">There are no records in this queue.</p>
+  </section>
+  {% endif %}
+</main>
+{% endblock %}

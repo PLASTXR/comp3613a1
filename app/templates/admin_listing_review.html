@@ -1,0 +1,46 @@
+{% extends "authenticated-base.html" %}
+{% block title %}Review {{ project.project_name }} | StudentCare{% endblock %}
+
+{% block subpage_content %}
+<main class="container-fluid px-0">
+  <p class="small text-secondary mb-3"><a href="{{ url_for('admin_all_listings') }}">Pending Listings</a> <span class="mx-2">›</span>{{ project.project_name }}</p>
+  <article class="card project-card mx-auto" style="max-width: 850px;">
+    {% if project.project_cover_image %}
+    <img class="card-img-top project-cover-image" src="{{ project.project_cover_image }}" alt="{{ project.project_name }} cover">
+    {% endif %}
+    <div class="card-body p-4 p-md-5">
+      <p class="small text-secondary mb-1">{{ organization.organization_name }}</p>
+      <h1 class="h2 mb-3">{{ project.project_name }}</h1>
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        {% if project.primary_category %}<span class="category-chip">{{ project.primary_category }}</span>{% endif %}
+        {% if project.secondary_category %}<span class="category-chip">{{ project.secondary_category }}</span>{% endif %}
+      </div>
+      <dl class="row gy-2">
+        <dt class="col-sm-4">Location</dt><dd class="col-sm-8">{{ project.location }}</dd>
+        <dt class="col-sm-4">Dates</dt><dd class="col-sm-8">{{ project.start_date.strftime("%b %d, %Y") }}{% if project.end_date %} – {{ project.end_date.strftime("%b %d, %Y") }}{% endif %}</dd>
+        <dt class="col-sm-4">Commitment</dt><dd class="col-sm-8">{{ project.commitment_type }}</dd>
+        <dt class="col-sm-4">Session hours</dt><dd class="col-sm-8">{{ project.estimated_hours_per_session }}</dd>
+        <dt class="col-sm-4">Volunteer capacity</dt><dd class="col-sm-8">{{ project.current_volunteers }} / {{ project.max_volunteers }}</dd>
+        <dt class="col-sm-4">Availability</dt><dd class="col-sm-8">{{ project.availability }}</dd>
+        <dt class="col-sm-4">Requirements</dt><dd class="col-sm-8">{{ project.application_requirements or "None listed." }}</dd>
+      </dl>
+      <section class="mb-4">
+        <h2 class="h5">Summary</h2><p>{{ project.short_listing_summary }}</p>
+        <h2 class="h5">Description</h2><p class="mb-0">{{ project.description }}</p>
+      </section>
+      {% if project.status == "pending" %}
+      <div class="d-flex flex-wrap gap-2">
+        <form method="post" action="{{ url_for('admin_deny_listing', project_id=project.volunteer_project_id) }}">
+          <button class="btn btn-outline-danger" type="submit">Deny Listing</button>
+        </form>
+        <form method="post" action="{{ url_for('admin_approve_listing', project_id=project.volunteer_project_id) }}">
+          <button class="btn btn-primary" type="submit">Approve Listing</button>
+        </form>
+      </div>
+      {% else %}
+      <p class="alert alert-secondary mb-0">This listing has already been {{ project.status }}.</p>
+      {% endif %}
+    </div>
+  </article>
+</main>
+{% endblock %}

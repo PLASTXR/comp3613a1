@@ -1,0 +1,50 @@
+{% extends "authenticated-base.html" %}
+{% block title %}Review Hours | StudentCare{% endblock %}
+
+{% block subpage_content %}
+<main class="container-fluid px-0">
+  <p class="small text-secondary mb-3"><a href="{{ url_for('admin_all_hours') }}">Pending Hour Logs</a> <span class="mx-2">›</span>Log #{{ hours_log.log_id }}</p>
+  <article class="card project-card mx-auto" style="max-width: 760px;">
+    <div class="card-body p-4 p-md-5">
+      <p class="small text-secondary mb-1">{{ (student.first_name ~ " " ~ student.last_name).strip() or student_user.username }}</p>
+      <h1 class="h2 mb-1">{{ project.project_name }}</h1>
+      <p class="text-secondary mb-4">{{ hours_log.hours }} hours · {{ hours_log.volunteer_date.strftime("%b %d, %Y") }}</p>
+      <dl class="row gy-2">
+        <dt class="col-sm-4">Submitted</dt><dd class="col-sm-8">{{ hours_log.log_date.strftime("%b %d, %Y") }}</dd>
+        <dt class="col-sm-4">Student email</dt><dd class="col-sm-8">{{ student_user.email }}</dd>
+        <dt class="col-sm-4">Status</dt><dd class="col-sm-8">{{ hours_log.status }}</dd>
+      </dl>
+      <section class="mb-4">
+        <h2 class="h5">What the student did</h2>
+        <p>{{ hours_log.description }}</p>
+        {% if hours_log.evidence_attachment %}
+        <a class="btn btn-outline-primary btn-sm"
+           href="{{ url_for('admin_hour_evidence', log_id=hours_log.log_id) }}">Download evidence</a>
+        {% else %}
+        <p class="small text-secondary mb-0">No evidence attached.</p>
+        {% endif %}
+      </section>
+      {% if hours_log.status == "pending" %}
+      <div class="d-flex flex-wrap gap-2">
+        <form method="post" action="{{ url_for('admin_approve_hours_log', log_id=hours_log.log_id) }}">
+          <button class="btn btn-primary" type="submit">Approve · Add {{ hours_log.hours * 25 }} Credits</button>
+        </form>
+      </div>
+      <form class="border rounded-3 p-3 mt-3" method="post"
+            action="{{ url_for('admin_deny_hours_log', log_id=hours_log.log_id) }}">
+        <label class="form-label" for="denialReason">Denial reason (optional)</label>
+        <textarea class="form-control mb-3" id="denialReason" name="denial_reason"
+                  rows="3" maxlength="1000"></textarea>
+        <button class="btn btn-outline-danger" type="submit">Deny Hours</button>
+      </form>
+      {% else %}
+      {% if hours_log.denial_reason %}
+      <p class="alert alert-warning mb-0">Denial reason: {{ hours_log.denial_reason }}</p>
+      {% else %}
+      <p class="alert alert-secondary mb-0">This hour log has already been reviewed.</p>
+      {% endif %}
+      {% endif %}
+    </div>
+  </article>
+</main>
+{% endblock %}

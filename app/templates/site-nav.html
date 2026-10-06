@@ -8,6 +8,8 @@
         <small>Volunteer Community</small>
       </span>
     </a>
+    <a class="btn btn-outline-primary btn-sm navbar-about"
+       href="{{ url_for('about_view') }}">About</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
             data-bs-target="#studentCareNavigation" aria-controls="studentCareNavigation"
             aria-expanded="false" aria-label="Toggle navigation">
@@ -15,13 +17,24 @@
     </button>
     <div class="collapse navbar-collapse" id="studentCareNavigation">
       <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+        {% if user_logged_in and user.role == "admin" %}
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_home_view') }}">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_all_listings') }}">Listings</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_all_applications') }}">Applications</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_all_hours') }}">Hours</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_all_resignations') }}">Resignations</a></li>
+        {% else %}
         <li class="nav-item dropdown">
           <button class="nav-link dropdown-toggle" type="button" data-bs-toggle="dropdown"
                   aria-expanded="false">Projects</button>
           <ul class="dropdown-menu">
             <li><a class="dropdown-item" href="{{ url_for('project_search_view') }}">Browse Projects</a></li>
-            {% if user_logged_in %}
+            {% if user_logged_in and user.role == "regular_user" %}
             <li><a class="dropdown-item" href="{{ url_for('user_home_view') }}">Active Projects</a></li>
+            {% endif %}
+            {% if user_logged_in and user.role == "volunteer_organization" %}
+            <li><a class="dropdown-item" href="{{ url_for('organization_listings_view') }}">My Listings</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('organization_listing_form') }}">Post a Listing</a></li>
             {% endif %}
           </ul>
         </li>
@@ -37,12 +50,15 @@
             <li><a class="dropdown-item" href="{{ url_for('rewards_view').include_query_params(category='Campus Perks') }}">Campus Perks</a></li>
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item" href="{{ url_for('rewards_view') }}#my-rewards">My Rewards</a></li>
+            {% elif user_logged_in %}
+            <li><span class="dropdown-item-text text-secondary">Rewards are for student accounts.</span></li>
             {% else %}
             <li><h6 class="dropdown-header">Browse by category</h6></li>
             <li><a class="dropdown-item" href="{{ url_for('login_view') }}">Sign in to browse rewards</a></li>
             {% endif %}
           </ul>
         </li>
+        {% endif %}
         {% if user_logged_in %}
         <li class="nav-item">
           <a class="btn btn-outline-primary ms-lg-2" href="{{ url_for('profile_view') }}">My Profile</a>

@@ -1,0 +1,29 @@
+{% extends "authenticated-base.html" %}
+{% block page_title %}All Applicants | StudentCare{% endblock %}
+
+{% block subpage_content %}
+<main>
+  <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+    <div>
+      <p class="text-uppercase small fw-semibold mb-1 text-secondary">Volunteer organization</p>
+      <h1 class="h2 mb-1">All Applicants</h1>
+      <p class="text-secondary mb-0">
+        {{ applicant_count }} applications across your listings. Campus Volunteerism Centre handles review decisions.
+      </p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{{ url_for('organization_listings_view') }}">Dashboard</a>
+  </div>
+  {% if applicants %}
+  <section class="row g-3" aria-label="All organization applicants">
+    {% for application, student, applicant_user, project in applicants %}
+    {% include "organization_applicant_card.html" %}
+    {% endfor %}
+  </section>
+  {% else %}
+  <section class="empty-state text-center p-5">
+    <h2 class="h5">No applicants yet</h2>
+    <p class="text-secondary mb-0">Applications to your approved listings will appear here.</p>
+  </section>
+  {% endif %}
+</main>
+{% endblock %}

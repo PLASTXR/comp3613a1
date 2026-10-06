@@ -41,6 +41,7 @@ def create_db_and_tables() -> None:
     SQLModel.metadata.create_all(engine)
     _migrate_volunteer_project_columns()
     _migrate_redemption_columns()
+    _migrate_organization_listing_columns()
 
 
 def _migrate_volunteer_project_columns() -> None:
@@ -96,6 +97,60 @@ def _migrate_redemption_columns() -> None:
                 "ADD COLUMN quantity INTEGER NOT NULL DEFAULT 1"
             )
         )
+
+
+def _migrate_organization_listing_columns() -> None:
+    organization_table = "volunteer_organization"
+    project_table = "volunteer_project"
+    inspector = inspect(engine)
+    if not inspector.has_table(organization_table) or not inspector.has_table(project_table):
+        return
+
+    organization_columns = {
+        column["name"] for column in inspector.get_columns(organization_table)
+    }
+    project_columns = {
+        column["name"] for column in inspector.get_columns(project_table)
+    }
+    with engine.begin() as connection:
+        if "password" in organization_columns:
+            connection.execute(
+                text(
+                    "ALTER TABLE volunteer_organization DROP COLUMN password"
+                )
+            )
+        if "user_id" not in organization_columns:
+            connection.execute(
+                text(
+                    'ALTER TABLE volunteer_organization '
+                    'ADD COLUMN user_id INTEGER REFERENCES "user" (id)'
+                )
+            )
+        if "short_listing_summary" not in project_columns:
+            connection.execute(
+                text(
+                    "ALTER TABLE volunteer_project "
+                    "ADD COLUMN short_listing_summary VARCHAR(200) "
+                    "NOT NULL DEFAULT ''"
+                )
+            )
+        connection.execute(
+            text(
+                "CREATE UNIQUE INDEX IF NOT EXISTS "
+                "uq_volunteer_organization_user_id "
+                "ON volunteer_organization (user_id)"
+            )
+        )
+        if "project_cover_image" in project_columns:
+            connection.execute(
+                text(
+                    "UPDATE volunteer_project "
+                    "SET project_cover_image = REPLACE("
+                    "project_cover_image, 'uploads/project_covers/', "
+                    "'/project-covers/') "
+                    "WHERE project_cover_image LIKE 'uploads/project_covers/%'"
+                )
+            )
 
 
 def drop_all() -> None:

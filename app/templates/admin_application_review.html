@@ -1,0 +1,45 @@
+{% extends "authenticated-base.html" %}
+{% block title %}Review Application | StudentCare{% endblock %}
+
+{% block subpage_content %}
+<main class="container-fluid px-0">
+  <p class="small text-secondary mb-3"><a href="{{ url_for('admin_all_applications') }}">Pending Applications</a> <span class="mx-2">›</span>{{ project.project_name }}</p>
+  <article class="card project-card mx-auto" style="max-width: 760px;">
+    <div class="card-body p-4 p-md-5">
+      <p class="small text-secondary mb-1">{{ organization.organization_name }}</p>
+      <h1 class="h2 mb-1">{{ project.project_name }}</h1>
+      <div class="d-flex align-items-center gap-3 my-3">
+        {% if student.profile_picture_image %}
+        <img class="student-profile-avatar"
+             src="{{ url_for('student_profile_picture', student_id=student.student_id) }}"
+             alt="Student profile picture">
+        {% endif %}
+        <p class="text-secondary mb-0">
+          Application from {{ (student.first_name ~ " " ~ student.last_name).strip() or student_user.username }}
+        </p>
+      </div>
+      <dl class="row gy-2">
+        <dt class="col-sm-5">Student email</dt><dd class="col-sm-7">{{ student_user.email }}</dd>
+        <dt class="col-sm-5">Previous verified hours</dt><dd class="col-sm-7">{{ student.total_verified_hours }}</dd>
+        <dt class="col-sm-5">Application date</dt><dd class="col-sm-7">{{ application.creation_date.strftime("%b %d, %Y") }}</dd>
+      </dl>
+      <section class="mb-4">
+        <h2 class="h5">Student motivation</h2>
+        <p class="mb-0">{{ application.student_motivation }}</p>
+      </section>
+      {% if application.application_status == "pending" %}
+      <div class="d-flex flex-wrap gap-2">
+        <form method="post" action="{{ url_for('admin_deny_application', application_id=application.application_id) }}">
+          <button class="btn btn-outline-danger" type="submit">Deny</button>
+        </form>
+        <form method="post" action="{{ url_for('admin_accept_application', application_id=application.application_id) }}">
+          <button class="btn btn-primary" type="submit">Accept Application</button>
+        </form>
+      </div>
+      {% else %}
+      <p class="alert alert-secondary mb-0">This application has already been {{ application.application_status }}.</p>
+      {% endif %}
+    </div>
+  </article>
+</main>
+{% endblock %}

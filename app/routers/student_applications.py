@@ -30,6 +30,15 @@ async def project_application_form(
     user = await get_current_user(request, db) if user_logged_in else None
     project, organization = details
     can_apply = user is not None and user.role == "regular_user"
+    already_volunteering = False
+    if can_apply:
+        application_service = StudentApplicationService(
+            StudentApplicationRepository(db)
+        )
+        already_volunteering = application_service.is_accepted_or_active_volunteer(
+            user.id,
+            volunteer_project_id,
+        )
     return templates.TemplateResponse(
         request=request,
         name="project_application.html",
@@ -40,6 +49,7 @@ async def project_application_form(
             "user_logged_in": user_logged_in,
             "can_apply": can_apply,
             "project_is_full": project.current_volunteers >= project.max_volunteers,
+            "already_volunteering": already_volunteering,
         },
     )
 

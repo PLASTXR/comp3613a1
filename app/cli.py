@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import argparse
 import sys
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 
@@ -24,7 +24,7 @@ def _ensure_models_loaded() -> None:
 
 
 def cmd_init(args: argparse.Namespace) -> None:
-    """Create tables and seed demo accounts, organizations, and projects."""
+    """Create tables and seed demo accounts, organizations, projects, and applications."""
     from app.config import get_settings
     from app.database import drop_all, ensure_db_and_tables
 
@@ -48,14 +48,25 @@ def cmd_init(args: argparse.Namespace) -> None:
 
 
 def cmd_seed(args: argparse.Namespace) -> None:
-    """Insert demo accounts, volunteer organizations, and approved projects.
+    """Insert demo accounts, organizations, projects, and workflow test data.
 
     bob / bobpass       (regular_user)
+    applicant1 / applicantpass (regular_user)
     admin / adminpass   (admin)
     """
     from app.database import ensure_db_and_tables, get_cli_session
+    from app.models.campus_admin import CampusVolunteerismCentreAdmin
     from app.models.reward import Redemption, RewardListing
-    from app.models.student import Student
+    from app.models.student import (
+        ParticipationStatus,
+        Student,
+        StudentVolunteerRecord,
+    )
+    from app.models.student_application import (
+        StudentVolunteerApplication,
+        StudentVolunteerApplicationStatus,
+    )
+    from app.models.user import UserBase
     from app.models.volunteer_project import (
         VolunteerOrganization,
         VolunteerProject,
@@ -71,7 +82,13 @@ def cmd_seed(args: argparse.Namespace) -> None:
 
     demo_users = [
         ("bob", "bob@example.com", "bobpass", "regular_user"),
+        ("applicant1", "casey.rivera@example.com", "applicantpass", "regular_user"),
+        ("applicant2", "morgan.lee@example.com", "applicantpass", "regular_user"),
+        ("applicant3", "jamie.patel@example.com", "applicantpass", "regular_user"),
         ("admin", "admin@example.com", "adminpass", "admin"),
+        ("greenearth", "hello@greenearth.example", "orgpass", "volunteer_organization"),
+        ("campuspantry", "volunteer@campuspantry.example", "orgpass", "volunteer_organization"),
+        ("learningnetwork", "team@learningnetwork.example", "orgpass", "volunteer_organization"),
     ]
     organization_seeds = [
         {
@@ -93,11 +110,37 @@ def cmd_seed(args: argparse.Namespace) -> None:
             "address": "8 Library Square",
         },
     ]
+    organization_accounts = {
+        "Green Earth Collective": "greenearth",
+        "Campus Community Pantry": "campuspantry",
+        "Neighbourhood Learning Network": "learningnetwork",
+    }
+    demo_applicants = [
+        {
+            "username": "applicant1",
+            "first_name": "Casey",
+            "last_name": "Rivera",
+            "motivation": "I enjoy working with others and would like to contribute to this community project.",
+        },
+        {
+            "username": "applicant2",
+            "first_name": "Morgan",
+            "last_name": "Lee",
+            "motivation": "I am interested in volunteering, learning new skills, and supporting local residents.",
+        },
+        {
+            "username": "applicant3",
+            "first_name": "Jamie",
+            "last_name": "Patel",
+            "motivation": "I can contribute reliable time and enthusiasm to help this project succeed.",
+        },
+    ]
     today = date.today()
     project_seeds = [
         {
             "organization": "Green Earth Collective",
             "project_name": "Community Garden Crew",
+            "hours_demo": True,
             "primary_category": "Environment",
             "secondary_category": "Community",
             "description": "Help prepare garden beds, plant seasonal vegetables, and care for shared growing spaces.",
@@ -216,6 +259,10 @@ def cmd_seed(args: argparse.Namespace) -> None:
     projects_created = 0
     projects_skipped = 0
     projects_updated = 0
+    applications_created = 0
+    applications_skipped = 0
+    volunteer_records_created = 0
+    volunteer_records_skipped = 0
     rewards_created = 0
     rewards_skipped = 0
     bob_credits_initialized = False
@@ -226,7 +273,13 @@ def cmd_seed(args: argparse.Namespace) -> None:
                 print(f"  skip  {username} (already exists)")
                 skipped += 1
                 continue
-            payload_cls = AdminCreate if role == "admin" else RegularUserCreate
+            payload_cls = (
+                AdminCreate
+                if role == "admin"
+                else RegularUserCreate
+                if role == "regular_user"
+                else UserBase
+            )
             repo.create(
                 payload_cls(
                     username=username,
@@ -237,6 +290,20 @@ def cmd_seed(args: argparse.Namespace) -> None:
             )
             print(f"  create {username} ({role})")
             created += 1
+
+        admin_user = repo.get_by_username("admin")
+        if admin_user is not None and admin_user.id is not None:
+            admin_profile = session.get(
+                CampusVolunteerismCentreAdmin,
+                admin_user.id,
+            )
+            if admin_profile is None:
+                session.add(
+                    CampusVolunteerismCentreAdmin(
+                        admin_id=admin_user.id,
+                        contact_email=str(admin_user.email),
+                    )
+                )
 
         bob = repo.get_by_username("bob")
         if bob is not None and bob.id is not None:
@@ -270,6 +337,23 @@ def cmd_seed(args: argparse.Namespace) -> None:
                 raise RuntimeError(
                     f"Could not assign an ID to {organization.organization_name}."
                 )
+            organization_user = repo.get_by_username(
+                organization_accounts[organization.organization_name]
+            )
+            if organization_user is None or organization_user.id is None:
+                raise RuntimeError(
+                    f"Missing organization account for {organization.organization_name}."
+                )
+            if organization_user.role != "volunteer_organization":
+                raise RuntimeError(
+                    f"Account {organization_user.username} is not an organization account."
+                )
+            if organization.user_id not in (None, organization_user.id):
+                raise RuntimeError(
+                    f"{organization.organization_name} is linked to a different account."
+                )
+            organization.user_id = organization_user.id
+            session.add(organization)
             organization_ids[organization.organization_name] = organization.volunteer_organization_id
 
         for index, project_data in enumerate(project_seeds):
@@ -282,6 +366,19 @@ def cmd_seed(args: argparse.Namespace) -> None:
             )
             project = session.exec(statement).one_or_none()
             if project is not None:
+                if project_data.get("hours_demo") and project.start_date >= today:
+                    project.start_date = today - timedelta(days=14)
+                    session.add(project)
+                    projects_updated += 1
+                    print(f"  update project: {project_name} (hours demo date)")
+                if (
+                    project_data.get("hours_demo")
+                    and (project.end_date is None or project.end_date <= today)
+                ):
+                    project.end_date = today + timedelta(days=180)
+                    session.add(project)
+                    projects_updated += 1
+                    print(f"  update project: {project_name} (hours demo end date)")
                 if (
                     project_data.get("full_for_demo")
                     and project.current_volunteers != project.max_volunteers
@@ -293,7 +390,11 @@ def cmd_seed(args: argparse.Namespace) -> None:
                 print(f"  skip project: {project_name} (already exists)")
                 continue
 
-            starts_at = today + timedelta(days=7 + index * 2)
+            starts_at = (
+                today - timedelta(days=14)
+                if project_data.get("hours_demo")
+                else today + timedelta(days=7 + index * 2)
+            )
             max_volunteers = 12 + (index % 4) * 3
             project = VolunteerProject(
                 volunteer_organization_id=organization_ids[organization_name],
@@ -319,6 +420,144 @@ def cmd_seed(args: argparse.Namespace) -> None:
             session.add(project)
             projects_created += 1
             print(f"  create project: {project_name} ({organization_name})")
+
+        bob = repo.get_by_username("bob")
+        if bob is None or bob.id is None:
+            raise RuntimeError("Missing demo student account bob.")
+        if bob.role != "regular_user":
+            raise RuntimeError("The demo account bob is not a student account.")
+        bob_student = session.get(Student, bob.id)
+        if bob_student is None:
+            bob_student = Student(
+                student_id=bob.id,
+                contact_email=str(bob.email),
+            )
+            session.add(bob_student)
+            session.flush()
+
+        hours_demo_data = next(
+            project_data
+            for project_data in project_seeds
+            if project_data.get("hours_demo")
+        )
+        hours_demo_statement = select(VolunteerProject).where(
+            VolunteerProject.project_name == hours_demo_data["project_name"],
+            VolunteerProject.volunteer_organization_id
+            == organization_ids[hours_demo_data["organization"]],
+        )
+        hours_demo_project = session.exec(hours_demo_statement).one_or_none()
+        if (
+            hours_demo_project is None
+            or hours_demo_project.volunteer_project_id is None
+        ):
+            raise RuntimeError("Could not find the seeded hours demo project.")
+
+        record_statement = select(StudentVolunteerRecord).where(
+            StudentVolunteerRecord.student_id == bob.id,
+            StudentVolunteerRecord.volunteer_project_id
+            == hours_demo_project.volunteer_project_id,
+        )
+        if session.exec(record_statement).first() is not None:
+            volunteer_records_skipped += 1
+            print("  skip Bob's hours demo volunteer record (already exists)")
+        else:
+            session.add(
+                StudentVolunteerRecord(
+                    student_id=bob.id,
+                    volunteer_project_id=hours_demo_project.volunteer_project_id,
+                    organization_name=hours_demo_data["organization"],
+                    start_date=hours_demo_project.start_date,
+                    end_date=hours_demo_project.end_date,
+                    participation_status=ParticipationStatus.ACTIVE,
+                )
+            )
+            hours_demo_project.current_volunteers = min(
+                hours_demo_project.current_volunteers + 1,
+                hours_demo_project.max_volunteers,
+            )
+            session.add(hours_demo_project)
+            volunteer_records_created += 1
+
+        applicant_students: list[tuple[Student, dict[str, str]]] = []
+        for applicant_data in demo_applicants:
+            applicant_user = repo.get_by_username(applicant_data["username"])
+            if applicant_user is None or applicant_user.id is None:
+                raise RuntimeError(
+                    f"Missing demo applicant account {applicant_data['username']}."
+                )
+            if applicant_user.role != "regular_user":
+                raise RuntimeError(
+                    f"Account {applicant_user.username} is not a student account."
+                )
+            applicant_student = session.get(Student, applicant_user.id)
+            if applicant_student is None:
+                applicant_student = Student(
+                    student_id=applicant_user.id,
+                    contact_email=str(applicant_user.email),
+                )
+            if not applicant_student.first_name:
+                applicant_student.first_name = applicant_data["first_name"]
+            if not applicant_student.last_name:
+                applicant_student.last_name = applicant_data["last_name"]
+            session.add(applicant_student)
+            applicant_students.append((applicant_student, applicant_data))
+
+        session.flush()
+        application_projects: list[VolunteerProject] = []
+        selected_projects_per_organization: dict[str, int] = {}
+        for project_data in project_seeds:
+            organization_name = project_data["organization"]
+            selected_count = selected_projects_per_organization.get(
+                organization_name, 0
+            )
+            if project_data.get("full_for_demo") or selected_count >= 2:
+                continue
+            statement = select(VolunteerProject).where(
+                VolunteerProject.project_name == project_data["project_name"],
+                VolunteerProject.volunteer_organization_id
+                == organization_ids[organization_name],
+            )
+            project = session.exec(statement).one_or_none()
+            if (
+                project is None
+                or project.status != VolunteerProjectStatus.APPROVED
+                or project.current_volunteers >= project.max_volunteers
+            ):
+                continue
+            application_projects.append(project)
+            selected_projects_per_organization[organization_name] = selected_count + 1
+
+        seed_time = datetime.now(timezone.utc)
+        for project_index, project in enumerate(application_projects):
+            if project.volunteer_project_id is None:
+                raise RuntimeError(
+                    f"Could not assign an ID to {project.project_name}."
+                )
+            for applicant_index, (student, applicant_data) in enumerate(
+                applicant_students
+            ):
+                statement = select(StudentVolunteerApplication).where(
+                    StudentVolunteerApplication.student_id == student.student_id,
+                    StudentVolunteerApplication.volunteer_project_id
+                    == project.volunteer_project_id,
+                )
+                if session.exec(statement).first() is not None:
+                    applications_skipped += 1
+                    continue
+                session.add(
+                    StudentVolunteerApplication(
+                        student_id=student.student_id,
+                        volunteer_project_id=project.volunteer_project_id,
+                        application_status=StudentVolunteerApplicationStatus.PENDING,
+                        creation_date=seed_time
+                        - timedelta(
+                            days=project_index * len(applicant_students)
+                            + applicant_index
+                        ),
+                        student_motivation=applicant_data["motivation"],
+                    )
+                )
+                applications_created += 1
 
         for name, description, category, points_cost, quantity_available in reward_seeds:
             statement = select(RewardListing).where(RewardListing.name == name)
@@ -348,12 +587,19 @@ def cmd_seed(args: argparse.Namespace) -> None:
         f"users created {created}, skipped {skipped}; "
         f"organizations created {organizations_created}, skipped {organizations_skipped}; "
         f"projects created {projects_created}, skipped {projects_skipped}, "
-        f"updated {projects_updated}; rewards created {rewards_created}, "
+        f"updated {projects_updated}; applications created {applications_created}, "
+        f"skipped {applications_skipped}; volunteer records created "
+        f"{volunteer_records_created}, skipped {volunteer_records_skipped}; "
+        f"rewards created {rewards_created}, "
         f"skipped {rewards_skipped}."
     )
     if bob_credits_initialized:
         print("Initialized bob's student profile with 500 demo credits.")
-    print("Login with bob/bobpass or admin/adminpass")
+    print(
+        "Login with bob/bobpass, applicant1/applicantpass, "
+        "applicant2/applicantpass, applicant3/applicantpass, admin/adminpass, "
+        "or an organization username with orgpass."
+    )
 
 
 def cmd_run(args: argparse.Namespace) -> None:
@@ -489,7 +735,7 @@ def build_parser() -> argparse.ArgumentParser:
         "init",
         help=(
             "Create DB tables and seed demo users, volunteer organizations, "
-            "and approved projects (drops existing tables by default)"
+            "approved projects, and sample applications (drops existing tables by default)"
         ),
     )
     p_init.add_argument(
@@ -510,7 +756,7 @@ def build_parser() -> argparse.ArgumentParser:
         "seed",
         help=(
             "Idempotently add demo users, volunteer organizations, "
-            "and approved projects"
+            "approved projects, and sample applications"
         ),
     )
     p_seed.set_defaults(func=cmd_seed)

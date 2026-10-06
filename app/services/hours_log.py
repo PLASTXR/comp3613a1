@@ -65,7 +65,32 @@ class HoursLogService:
     def get_active_records(
         self,
         student_id: int | None,
+        query: str | None = None,
+        sort_by: str = "newest",
     ) -> list[tuple[StudentVolunteerRecord, VolunteerProject, VolunteerOrganization]]:
         if student_id is None:
             return []
-        return self.repository.get_active_records(student_id)
+        if sort_by not in {"newest", "hours", "volunteers"}:
+            raise ValueError("Unsupported active-project sort order.")
+        clean_query = query.strip() if query else None
+        return self.repository.get_active_records(
+            student_id,
+            query=clean_query or None,
+            sort_by=sort_by,
+        )
+
+    def get_active_project_stats(self, student_id: int | None) -> dict[str, int]:
+        if student_id is None:
+            raise ValueError("Student ID is required.")
+        student = self.repository.get_student(student_id)
+        if student is None:
+            raise ValueError("Student profile not found.")
+        active_projects, total_hours, pending_hours = (
+            self.repository.get_active_project_stats(student_id)
+        )
+        return {
+            "active_projects": active_projects,
+            "total_hours": total_hours,
+            "pending_hours": pending_hours,
+            "credits": student.credits,
+        }

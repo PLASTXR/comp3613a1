@@ -4,7 +4,7 @@ Import every table model here so ``SQLModel.metadata.create_all`` sees them.
 """
 
 from app.models.campus_admin import CampusVolunteerismCentreAdmin
-from app.models.hours_log import HoursLog
+from app.models.hours_log import HoursLog, HoursLogStatus
 from app.models.reward import Redemption, RewardListing
 from app.models.student_application import (
     StudentVolunteerApplication,
@@ -21,6 +21,7 @@ from app.models.volunteer_project import (
 __all__ = [
     "CampusVolunteerismCentreAdmin",
     "HoursLog",
+    "HoursLogStatus",
     "ParticipationStatus",
     "Redemption",
     "RewardListing",

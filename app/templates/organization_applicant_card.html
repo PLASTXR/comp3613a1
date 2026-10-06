@@ -1,0 +1,57 @@
+{% set applicant_name = (student.first_name ~ " " ~ student.last_name).strip() %}
+<div class="col-12 col-lg-6">
+  <article class="border rounded-3 h-100 p-3">
+    <div class="d-flex align-items-start gap-3 mb-3">
+      {% if student.profile_picture_image %}
+      <img class="student-list-avatar"
+           src="{{ url_for('student_profile_picture', student_id=student.student_id) }}"
+           alt="Student profile picture">
+      {% else %}
+      <span class="student-list-avatar student-profile-avatar--empty" aria-hidden="true">
+        {{ (student.first_name[:1] or applicant_user.username[:1])|upper }}
+      </span>
+      {% endif %}
+      <div>
+        <h3 class="h6 mb-1">{{ applicant_name or applicant_user.username }}</h3>
+        <p class="small text-secondary mb-0">
+          {{ student.total_verified_hours + student.total_unverified_hours }} total hours
+        </p>
+      </div>
+    </div>
+    <p class="small mb-1"><strong>{{ project.project_name }}</strong></p>
+    <p class="small text-secondary mb-3">
+      Applied {{ application.creation_date.strftime("%b %d, %Y") }}
+    </p>
+    <button class="btn btn-sm btn-outline-primary" type="button"
+            data-bs-toggle="modal" data-bs-target="#applicantDetails{{ application.application_id }}">
+      View
+    </button>
+  </article>
+</div>
+
+<div class="modal fade" id="applicantDetails{{ application.application_id }}" tabindex="-1"
+     aria-labelledby="applicantDetailsLabel{{ application.application_id }}" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title fs-5" id="applicantDetailsLabel{{ application.application_id }}">
+          {{ applicant_name or applicant_user.username }}
+        </h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-5">Volunteer project</dt>
+          <dd class="col-sm-7">{{ project.project_name }}</dd>
+          <dt class="col-sm-5">Applicant total hours</dt>
+          <dd class="col-sm-7">{{ student.total_verified_hours + student.total_unverified_hours }}</dd>
+          <dt class="col-sm-5">Applied</dt>
+          <dd class="col-sm-7">{{ application.creation_date.strftime("%b %d, %Y") }}</dd>
+          <dt class="col-sm-5">Motivation</dt>
+          <dd class="col-sm-7">{{ application.student_motivation or "No motivation provided." }}</dd>
+        </dl>
+        <p class="small text-secondary mb-0">Applications are reviewed by Campus Volunteerism Centre.</p>
+      </div>
+    </div>
+  </div>
+</div>

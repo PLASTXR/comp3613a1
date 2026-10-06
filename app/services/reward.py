@@ -6,6 +6,9 @@ class RewardService:
     def __init__(self, repository: RewardRepository):
         self.repository = repository
 
+    def count_rewards(self) -> int:
+        return self.repository.count_rewards()
+
     def list_rewards(
         self,
         query: str | None = None,

@@ -23,6 +23,7 @@ from . import (
     hours_log,
     project_search,
     student_applications,
+    volunteer_organization,
     rewards,
     users,
     logout,
