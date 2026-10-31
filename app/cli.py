@@ -25,7 +25,7 @@ def _ensure_models_loaded() -> None:
 
 def cmd_init(args: argparse.Namespace) -> None:
     """Create tables and seed demo accounts, organizations, projects, and applications."""
-    from app.config import get_settings
+    from app.config import get_settings, mask_database_uri
     from app.database import drop_all, ensure_db_and_tables
 
     _ensure_models_loaded()
@@ -42,7 +42,7 @@ def cmd_init(args: argparse.Namespace) -> None:
             print(f"Database not ready yet while dropping ({exc}); continuing…")
     print("Creating tables…")
     ensure_db_and_tables()
-    print(f"Database ready ({get_settings().database_uri}).")
+    print(f"Database ready ({mask_database_uri(get_settings().database_uri)}).")
     if getattr(args, "seed", True):
         cmd_seed(args)
 
