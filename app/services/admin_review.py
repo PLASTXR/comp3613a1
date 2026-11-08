@@ -124,6 +124,7 @@ class AdminReviewService:
     ) -> None:
         if admin_user_id is None:
             raise ValueError("Authenticated admin ID is missing.")
+        
         self.repository.review_hours_log(
             log_id=log_id,
             admin_user_id=admin_user_id,

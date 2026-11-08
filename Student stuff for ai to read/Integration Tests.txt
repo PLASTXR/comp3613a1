@@ -1,0 +1,72 @@
+Test
+Dependencies
+Description
+test_register_user()
+AuthService
+UserRepository
+AuthService.register_user()
+
+
+UserRepository.get_by_username()
+Verify that the user is successfully created and added to the database.
+test_authenticate_success()
+AuthService.register_user()
+
+AuthService.authenticate_user()
+Ensures a user can log in with valid credentials and method returns a valid JWT access token string that contains the correct user.id and role.
+test_authenticate_wrong_password()
+AuthService.register_user()
+
+AuthService.authenticate_user()
+Incorrect password returns none instead of an access token
+test_authenticate_invalid_username()
+AuthService.register_user()
+log in with a username that does not exist (UserRepository.get_by_username returns none) returns none instead of an access token
+test_student_apply_to_project()
+StudentApplicationService
+StudentProfileRepository
+VolunteerProjectRepository
+create_student()
+create_project()
+Student can successfully apply to an approved project and a pending application record is created in the database
+test_org_post_listing_requires_admin_approval()
+VolunteerProjectService
+AdminReviewService
+VolunteerProjectRepository
+create_organization()
+Volunteer organization creates a listing application with PENDING status. 
+
+Then calls the admin review service to approve it.
+
+Verify that the database record updates to APPROVED and the listing becomes visible in public searches
+test_student_log_hours_increments_totals()
+HoursLogService
+AdminReviewService
+AdminReviewRepository
+HoursLogRepository
+create_student()
+create_participation_record()
+Verify log hours saved as pending, then approve them as an admin. 
+
+Verify the HoursLog status changes to verified, and the Student’s total_verified_hours and credits are correctly increased in the database
+test_student_redeem_reward_deducts_credits()
+RewardService
+RewardRepository
+create_student(credits=500)
+create_reward(cost=200)
+Verify that a Redemption record is created, and the reward's quantity_available decreases correctly.
+
+The student's credit balance in the database decreases from 500 to 300
+test_student_resignation_updates_record()
+VolunteerProjectService
+VolunteerProjectRepository
+create_student()
+create_active_volunteer_record()
+Verify that when a student resigns, the StudentVolunteerRecord in the database updates its participation_status to RESIGNED, saves the resignation reason, and the project is removed from the student's active project
+test_delete_listing_with_applications_fails()
+VolunteerProjectService
+VolunteerProjectRepository
+create_project()
+create_student_application()
+Verify that trying to delete a VolunteerProject that has a  StudentVolunteerApplication raises a ListingHasAssociatedRecordsError and the project remains in the database
+
